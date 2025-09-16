@@ -8,6 +8,7 @@ HERE=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
 CONF_DIR=$(cd "${HERE}/../confs" && pwd)
 
 SOURCE=""
+clean_mode="false"
 wibs=()
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -37,6 +38,8 @@ while [[ $# -gt 0 ]]; do
                     exit 1;;
             esac
             ;;
+        --clean)
+            clean_mode="true"
         *)
             echo "ERROR Unknown argument: $1"
             usage
@@ -48,7 +51,7 @@ done
 daq_json=""
 wib_json=""
 
-configure_daq_json() {
+configure_cosmic_json() {
     cp -pf "${HERE}/iceberg_daq_eth.json" "${HERE}/iceberg_daq_eth.json.sav"
     sed -i '
         /"signal"/s/[0-9][0-9]*/32/
@@ -86,7 +89,7 @@ configure_wibpulser_json() {
 # Execute configuration based on selected option
 case "$SOURCE" in
     cosmic)
-        configure_daq_json
+        configure_cosmic_json
         ;;
     pulser)
         configure_pulser_json
