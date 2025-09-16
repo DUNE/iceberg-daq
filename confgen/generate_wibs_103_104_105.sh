@@ -1,46 +1,52 @@
 #!/bin/bash
 
-USAGE="\
-  usage: $(basename "$0") [-h|--help] [--pulser|--cosmic|--wibpulser]
-example: $(basename "$0")
-The default is --cosmic.
-"
+usage() {
+    echo "Usage: $0 --wibs <'all'|102|105|106> --source <cosmic|pulser|wibpulser|pulsechannel>"
+}
 
 HERE=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
 CONF_DIR=$(cd "${HERE}/../confs" && pwd)
 
-DROMAP="${HERE}/iceberg_dromap_wibs_103_104_105.json"
-#DROMAP="${HERE}/iceberg_dromap_wib1.json"
-#DROMAP="${HERE}/iceberg_dromap_wib1_flx.json"
-#DROMAP="${HERE}/iceberg_dromap_wibs_flx.json"
-
-do_cosmic=0
-do_pulser=0
-do_wibpulser=0
-do_pulsechannel=0
+SOURCE=""
+wibs=()
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -h|--help)
+            usage;;
+        --wibs)
+            shift
+            while [[ $# -gt 0 && $1 != -* ]]; do
+                wibs+=("$1")
+                shift
+            done
+            ;;
+        --source)
+            shift
+            if [[ $# -ne 1 || "$1" == "-*" ]]; then
+                echo "ERROR: --source requires exactly one of 'cosmic', 'pulser', 'wibpulser', or 'pulsechannel'"
+                usage
+                exit 1
+            fi
+            case "$1" in
+                cosmic|pulser|wibpulser|pulsechannel)
+                    SOURCE="$1"
+                ;;
+                *)
+                    echo "ERROR: --source requires exactly one of 'cosmic', 'pulser', 'wibpulser', or 'pulsechannel'"
+                    usage
+                    exit 1;;
+            esac
+            ;;
+        *)
+            echo "ERROR Unknown argument: $1"
+            usage
+            exit 1
+            ;;
+    esac
+done
 
 daq_json=""
 wib_json=""
-
-set -u
-
-while expr "x${1-}" : x- >/dev/null; do
-    case "$1" in
-    -x) set -x;;
-    -h|-\?|--help) echo "$USAGE"; exit;;
-    --cosmic*) do_cosmic=1;;
-    --pulser*) do_pulser=1;;
-    --wibpulser*) do_wibpulser=1;;
-    --pulsechannel*) do_pulsechannel=1;;
-    *) echo "Unknown option: $1"; exit 1;;
-    esac
-    shift
-done
-
-# Check for mutually exclusive options
-if [ $((do_cosmic + do_pulser + do_wibpulser + do_pulsechannel)) -ne 1 ]; then
-    echo "ERROR: Can specify only one of --cosmic, --pulser, or --wibpulser"; exit 1
-fi
 
 configure_daq_json() {
     cp -pf "${HERE}/iceberg_daq_eth.json" "${HERE}/iceberg_daq_eth.json.sav"
@@ -78,19 +84,34 @@ configure_wibpulser_json() {
 }
 
 # Execute configuration based on selected option
-if [ "$do_cosmic" = 1 ]; then
-    echo "Configuring for cosmics"
-    configure_daq_json
-elif [ "$do_pulser" = 1 ]; then
-    configure_pulser_json
-elif [ "$do_wibpulser" = 1 ]; then
-    configure_wibpulser_json
-    configure_pulser_json
-elif [ "$do_pulsechannel" = 1 ]; then
-    configure_pulser_json
-fi
+case "$SOURCE" in
+    cosmic)
+        configure_daq_json
+        ;;
+    pulser)
+        configure_pulser_json
+        ;;
+    wibpulser)
+        configure_wibpulser_json
+        configure_pulser_json
+        ;;
+    pulsechannel)
+        configure_pulser_json
+        ;;
+    *)
+        echo "ERROR: Unknown source: $SOURCE"
+        usage
+        exit 1
+        ;;
+esac
+
+generate_detector_readout_map() {
+    echo "This should combine the individual WIB DRO maps into one"
+}
 
 # Common operations for all configurations
+DROMAP=$(generate_detector_readout_map wibs)
+#DROMAP="${HERE}/iceberg_dromap_wibs_103_104_105.json"
 if [ -n "$daq_json" ]; then
     fddaqconf_gen -f -c "${HERE}/${daq_json}" -m "${DROMAP}" "${CONF_DIR}/iceberg_daq_conf" \
 	&& hermesmodules_gen -f -c "${HERE}/iceberg_hermes.json" -m "${DROMAP}" "${CONF_DIR}/iceberg_hermes_conf"
