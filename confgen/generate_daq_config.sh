@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 usage() {
     echo "Usage: $0 --wibs <'all'|102|105|106> --source <cosmic|pulser|wibpulser|pulsechannel>"
 }
