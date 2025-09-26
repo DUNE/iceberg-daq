@@ -3,13 +3,13 @@
 set -euo pipefail
 
 usage() {
-    echo "Usage: $0 --wibs <'all'|102|105|106> --source <cosmic|pulser|wibpulser|pulsechannel>"
+    echo "Usage: $0 --wibs <'all'|102|105|106> --source <cosmic|pulser|wibpulser|pulsechannel> --name <config_name> [--clean]"
 }
 
 HERE=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
 CONF_DIR=$(cd "${HERE}/../confs" && pwd)
 
-SOURCE=""
+data_source=""
 clean_mode="false"
 wibs=()
 while [[ $# -gt 0 ]]; do
@@ -32,7 +32,7 @@ while [[ $# -gt 0 ]]; do
             fi
             case "$1" in
                 cosmic|pulser|wibpulser|pulsechannel)
-                    SOURCE="$1"
+                    data_source="$1"
                 ;;
                 *)
                     echo "ERROR: --source requires exactly one of 'cosmic', 'pulser', 'wibpulser', or 'pulsechannel'"
@@ -40,6 +40,8 @@ while [[ $# -gt 0 ]]; do
                     exit 1;;
             esac
             ;;
+        --name)
+            config_name="$1"
         --clean)
             clean_mode="true"
         *)
@@ -52,6 +54,8 @@ done
 
 daq_json=""
 wib_json=""
+
+exit 123
 
 configure_cosmic_json() {
     cp -pf "${HERE}/iceberg_daq_eth.json" "${HERE}/iceberg_daq_eth.json.sav"
@@ -89,7 +93,7 @@ configure_wibpulser_json() {
 }
 
 # Execute configuration based on selected option
-case "$SOURCE" in
+case "$data_source" in
     cosmic)
         configure_cosmic_json
         ;;
@@ -104,7 +108,7 @@ case "$SOURCE" in
         configure_pulser_json
         ;;
     *)
-        echo "ERROR: Unknown source: $SOURCE"
+        echo "ERROR: Unknown source: $data_source"
         usage
         exit 1
         ;;
