@@ -50,6 +50,18 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Validate arguments
+dromap_files=()
+for wib in ${wibs[@]}; do 
+    filename="iceberg_dromap_wib_${wib}.json"
+    if [[ ! -f "$filename" ]]; then
+        echo "ERROR: No detector readout map file exists for WIB $wib"
+        exit 4
+    fi
+    dromap_files+=("iceberg_dromap_wib_${wib}.json")
+done
+jq -s 'add' ${dromap_files[@]} > iceberg_dromap_unique_name_FIX_THIS.json
+
 daq_json=""
 wib_json=""
 
@@ -115,13 +127,14 @@ generate_detector_readout_map() {
 }
 
 # Common operations for all configurations
-DROMAP=$(generate_detector_readout_map wibs)
 #DROMAP="${HERE}/iceberg_dromap_wibs_103_104_105.json"
-if [ -n "$daq_json" ]; then
-    fddaqconf_gen -f -c "${HERE}/${daq_json}" -m "${DROMAP}" "${CONF_DIR}/iceberg_daq_conf" \
-	&& hermesmodules_gen -f -c "${HERE}/iceberg_hermes.json" -m "${DROMAP}" "${CONF_DIR}/iceberg_hermes_conf"
-    test $? -eq 0 || { echo Config gen ERROR; exit 1; }
+if [ -z "$daq_json" ]; then
+    echo "ERROR: Invalid daq config: $daq_json"
+    exit 3
 fi
+fddaqconf_gen -f -c "${HERE}/${daq_json}" -m "${DROMAP}" "${CONF_DIR}/iceberg_daq_conf"
+hermesmodules_gen -f -c "${HERE}/iceberg_hermes.json" -m "${DROMAP}" "${CONF_DIR}/iceberg_hermes_conf"
+wibconf_gen -f -c $HERE/iceberg_wib.json $CONF_DIR/iceberg_wib_conf #>> $HERE/../logs/iceberg_wib_conf.log
 
 sed -i 's/monkafka.cern.ch:30092/iceberg01.fnal.gov:30092/g' "${CONF_DIR}/iceberg_daq_conf/boot.json"
 sed -i 's/monkafka.cern.ch:30092/iceberg01.fnal.gov:30092/g' "${CONF_DIR}/iceberg_hermes_conf/boot.json"
