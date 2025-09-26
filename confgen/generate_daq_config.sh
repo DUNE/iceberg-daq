@@ -30,7 +30,6 @@ while [[ $# -gt 0 ]]; do
             ;;
         --source)
             shift
-            echo "Num args left: $#"
             if [[ "$1" == "-*" ]]; then
                 echo "ERROR: --source requires exactly one of 'cosmic', 'pulser', 'wibpulser', or 'pulsechannel'"
                 usage
@@ -38,7 +37,6 @@ while [[ $# -gt 0 ]]; do
             fi
             case "$1" in
                 cosmic | pulser | wibpulser | pulsechannel)
-                    echo "CORRECT"
                     data_source="$1"
                     shift
                 ;;
@@ -72,10 +70,17 @@ if [[ -z "$data_source" ]]; then
     echo "ERROR: --source is required"
     exit 1
 fi
+
 if [[ -z "$config_name" ]]; then
     echo "ERROR: --name is required"
     exit 1
 fi
+config_dir=$(cd "${HERE}/../configs/" && pwd)
+if [[ -d "${config_dir}/${config_name}" ]]; then
+    echo "ERROR: A config area named $config_name already exists in $config_dir"
+    exit 1
+fi
+mkdir -p ${config_dir}/${config_name}
 
 num_unique_elements=$(echo "${wibs[@]}" | tr " " "\n" | uniq -c | wc -l)
 if [[ $num_unique_elements != ${#wibs[@]} ]]; then
@@ -97,9 +102,6 @@ jq -s 'add' ${dromap_files[@]} > iceberg_dromap_${dromap_tag}.json
 
 daq_json=""
 wib_json=""
-
-echo "Exiting as expected"
-exit 123
 
 configure_cosmic_json() {
     cp -pf "${HERE}/iceberg_daq_eth.json" "${HERE}/iceberg_daq_eth.json.sav"
@@ -158,21 +160,16 @@ case "$data_source" in
         ;;
 esac
 
-generate_detector_readout_map() {
-    echo "This should combine the individual WIB DRO maps into one"
-}
-
 # Common operations for all configurations
-#DROMAP="${HERE}/iceberg_dromap_wibs_103_104_105.json"
 if [ -z "$daq_json" ]; then
     echo "ERROR: Invalid daq config: $daq_json"
     exit 3
 fi
 
-CONF_DIR=$(cd "${HERE}/../confs" && pwd)
-fddaqconf_gen -f -c "${HERE}/${daq_json}" -m "${DROMAP}" "${CONF_DIR}/iceberg_daq_conf"
+CONF_DIR=$(cd "${HERE}/../configs/${config_name}" && pwd)
+fddaqconf_gen     -f -c "${HERE}/${daq_json}"         -m "${DROMAP}" "${CONF_DIR}/iceberg_daq_conf"
 hermesmodules_gen -f -c "${HERE}/iceberg_hermes.json" -m "${DROMAP}" "${CONF_DIR}/iceberg_hermes_conf"
-wibconf_gen -f -c $HERE/iceberg_wib.json $CONF_DIR/iceberg_wib_conf #>> $HERE/../logs/iceberg_wib_conf.log
+wibconf_gen       -f -c "$HERE/iceberg_wib.json"          $CONF_DIR/iceberg_wib_conf #>> $HERE/../logs/iceberg_wib_conf.log
 
 sed -i 's/monkafka.cern.ch:30092/iceberg01.fnal.gov:30092/g' "${CONF_DIR}/iceberg_daq_conf/boot.json"
 sed -i 's/monkafka.cern.ch:30092/iceberg01.fnal.gov:30092/g' "${CONF_DIR}/iceberg_hermes_conf/boot.json"
