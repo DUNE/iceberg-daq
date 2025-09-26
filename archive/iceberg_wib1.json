@@ -1,0 +1,28 @@
+{
+  "wibmod": {
+    "host_wib": "iceberg03",
+    "wibserver": [
+      {
+        "name": "wib101",
+        "address": "tcp://192.168.121.20:1234"
+      }
+    ],
+    "protowib": [],
+    "pulse_dac": 1,
+    "pulser": false,
+    "baseline": 2,
+    "buffering": 0,
+    "gain": 0,
+    "gain_match": false,
+    "coldadc_registers": [
+      35,
+      59,
+      223,
+      51,
+      137,
+      103,
+      39,
+      39
+    ]
+  }
+}
