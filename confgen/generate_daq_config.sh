@@ -6,12 +6,17 @@ usage() {
     echo "Usage: $0 --wibs <'all'|102|105|106> --source <cosmic|pulser|wibpulser|pulsechannel> --name <config_name> [--clean]"
 }
 
-HERE=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
-CONF_DIR=$(cd "${HERE}/../confs" && pwd)
+if [[ $# -eq 0 ]]; then
+    usage
+    exit 1
+fi
 
-data_source=""
-clean_mode="false"
+HERE=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
+
 wibs=()
+data_source=""
+config_name=""
+clean_mode="false"
 while [[ $# -gt 0 ]]; do
     case "$1" in
         -h|--help)
@@ -25,14 +30,17 @@ while [[ $# -gt 0 ]]; do
             ;;
         --source)
             shift
-            if [[ $# -ne 1 || "$1" == "-*" ]]; then
+            echo "Num args left: $#"
+            if [[ "$1" == "-*" ]]; then
                 echo "ERROR: --source requires exactly one of 'cosmic', 'pulser', 'wibpulser', or 'pulsechannel'"
                 usage
                 exit 1
             fi
             case "$1" in
-                cosmic|pulser|wibpulser|pulsechannel)
+                cosmic | pulser | wibpulser | pulsechannel)
+                    echo "CORRECT"
                     data_source="$1"
+                    shift
                 ;;
                 *)
                     echo "ERROR: --source requires exactly one of 'cosmic', 'pulser', 'wibpulser', or 'pulsechannel'"
@@ -41,9 +49,16 @@ while [[ $# -gt 0 ]]; do
             esac
             ;;
         --name)
+            shift
+            if [[ -d $1 ]]; then
+                echo "ERROR: A configuration directory named $1 already exists"
+                exit 2
+            fi
             config_name="$1"
+            shift;;
         --clean)
             clean_mode="true"
+            shift;;
         *)
             echo "ERROR Unknown argument: $1"
             usage
@@ -53,6 +68,21 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Validate arguments
+if [[ -z "$data_source" ]]; then
+    echo "ERROR: --source is required"
+    exit 1
+fi
+if [[ -z "$config_name" ]]; then
+    echo "ERROR: --name is required"
+    exit 1
+fi
+
+num_unique_elements=$(echo "${wibs[@]}" | tr " " "\n" | uniq -c | wc -l)
+if [[ $num_unique_elements != ${#wibs[@]} ]]; then
+    echo "ERROR: Each provided wib number must be unique"
+    exit 5
+fi
+
 dromap_files=()
 for wib in ${wibs[@]}; do 
     filename="iceberg_dromap_wib_${wib}.json"
@@ -62,11 +92,13 @@ for wib in ${wibs[@]}; do
     fi
     dromap_files+=("iceberg_dromap_wib_${wib}.json")
 done
-jq -s 'add' ${dromap_files[@]} > iceberg_dromap_unique_name_FIX_THIS.json
+dromap_tag=$(echo ${wibs[@]} | tr " " "_")
+jq -s 'add' ${dromap_files[@]} > iceberg_dromap_${dromap_tag}.json
 
 daq_json=""
 wib_json=""
 
+echo "Exiting as expected"
 exit 123
 
 configure_cosmic_json() {
@@ -136,6 +168,8 @@ if [ -z "$daq_json" ]; then
     echo "ERROR: Invalid daq config: $daq_json"
     exit 3
 fi
+
+CONF_DIR=$(cd "${HERE}/../confs" && pwd)
 fddaqconf_gen -f -c "${HERE}/${daq_json}" -m "${DROMAP}" "${CONF_DIR}/iceberg_daq_conf"
 hermesmodules_gen -f -c "${HERE}/iceberg_hermes.json" -m "${DROMAP}" "${CONF_DIR}/iceberg_hermes_conf"
 wibconf_gen -f -c $HERE/iceberg_wib.json $CONF_DIR/iceberg_wib_conf #>> $HERE/../logs/iceberg_wib_conf.log
