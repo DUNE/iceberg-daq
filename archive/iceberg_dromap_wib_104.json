@@ -1,0 +1,178 @@
+[
+    {
+        "src_id": 8,
+        "geo_id": {
+            "det_id": 3,
+            "crate_id": 8,
+            "slot_id": 3,
+            "stream_id": 0
+        },
+        "kind": "eth",
+        "parameters": {
+            "protocol": "udp",
+            "mode": "fix_rate",
+            "rx_iface": 0,
+            "rx_host": "iceberg03",
+            "rx_mac": "b4:83:51:0a:3e:d0",
+            "rx_ip": "192.168.122.100",
+            "rx_pcie_dev": "0000:61:00.0",
+            "tx_host": "iceberg-wib-104",
+            "tx_mac": "80:d3:36:00:52:62",
+            "tx_ip": "192.168.122.22"
+        }
+    },
+    {
+        "src_id": 9,
+        "geo_id": {
+            "det_id": 3,
+            "crate_id": 8,
+            "slot_id": 3,
+            "stream_id": 1
+        },
+        "kind": "eth",
+        "parameters": {
+            "protocol": "udp",
+            "mode": "fix_rate",
+            "rx_iface": 0,
+            "rx_host": "iceberg03",
+            "rx_mac": "b4:83:51:0a:3e:d0",
+            "rx_ip": "192.168.122.100",
+            "rx_pcie_dev": "0000:61:00.0",
+            "tx_host": "iceberg-wib-104",
+            "tx_mac": "80:d3:36:00:52:62",
+            "tx_ip": "192.168.122.22"
+        }
+    },
+    {
+        "src_id": 10,
+        "geo_id": {
+            "det_id": 3,
+            "crate_id": 8,
+            "slot_id": 3,
+            "stream_id": 2
+        },
+        "kind": "eth",
+        "parameters": {
+            "protocol": "udp",
+            "mode": "fix_rate",
+            "rx_iface": 0,
+            "rx_host": "iceberg03",
+            "rx_mac": "b4:83:51:0a:3e:d0",
+            "rx_ip": "192.168.122.100",
+            "rx_pcie_dev": "0000:61:00.0",
+            "tx_host": "iceberg-wib-104",
+            "tx_mac": "80:d3:36:00:52:62",
+            "tx_ip": "192.168.122.22"
+        }
+    },
+    {
+        "src_id": 11,
+        "geo_id": {
+            "det_id": 3,
+            "crate_id": 8,
+            "slot_id": 3,
+            "stream_id": 3
+        },
+        "kind": "eth",
+        "parameters": {
+            "protocol": "udp",
+            "mode": "fix_rate",
+            "rx_iface": 0,
+            "rx_host": "iceberg03",
+            "rx_mac": "b4:83:51:0a:3e:d0",
+            "rx_ip": "192.168.122.100",
+            "rx_pcie_dev": "0000:61:00.0",
+            "tx_host": "iceberg-wib-104",
+            "tx_mac": "80:d3:36:00:52:62",
+            "tx_ip": "192.168.122.22"
+        }
+    },
+    {
+        "src_id": 12,
+        "geo_id": {
+            "det_id": 3,
+            "crate_id": 8,
+            "slot_id": 3,
+            "stream_id": 64
+        },
+        "kind": "eth",
+        "parameters": {
+            "protocol": "udp",
+            "mode": "fix_rate",
+            "rx_iface": 0,
+            "rx_host": "iceberg03",
+            "rx_mac": "b4:83:51:0a:3e:d0",
+            "rx_ip": "192.168.122.100",
+            "rx_pcie_dev": "0000:61:00.0",
+            "tx_host": "iceberg-wib-104",
+            "tx_mac": "80:d3:36:00:52:63",
+            "tx_ip": "192.168.122.23"
+        }
+    },
+    {
+        "src_id": 13,
+        "geo_id": {
+            "det_id": 3,
+            "crate_id": 8,
+            "slot_id": 3,
+            "stream_id": 65
+        },
+        "kind": "eth",
+        "parameters": {
+            "protocol": "udp",
+            "mode": "fix_rate",
+            "rx_iface": 0,
+            "rx_host": "iceberg03",
+            "rx_mac": "b4:83:51:0a:3e:d0",
+            "rx_ip": "192.168.122.100",
+            "rx_pcie_dev": "0000:61:00.0",
+            "tx_host": "iceberg-wib-104",
+            "tx_mac": "80:d3:36:00:52:63",
+            "tx_ip": "192.168.122.23"
+        }
+    },
+    {
+        "src_id": 14,
+        "geo_id": {
+            "det_id": 3,
+            "crate_id": 8,
+            "slot_id": 3,
+            "stream_id": 66
+        },
+        "kind": "eth",
+        "parameters": {
+            "protocol": "udp",
+            "mode": "fix_rate",
+            "rx_iface": 0,
+            "rx_host": "iceberg03",
+            "rx_mac": "b4:83:51:0a:3e:d0",
+            "rx_ip": "192.168.122.100",
+            "rx_pcie_dev": "0000:61:00.0",
+            "tx_host": "iceberg-wib-104",
+            "tx_mac": "80:d3:36:00:52:63",
+            "tx_ip": "192.168.122.23"
+        }
+    },
+    {
+        "src_id": 15,
+        "geo_id": {
+            "det_id": 3,
+            "crate_id": 8,
+            "slot_id": 3,
+            "stream_id": 67
+        },
+        "kind": "eth",
+        "parameters": {
+            "protocol": "udp",
+            "mode": "fix_rate",
+            "rx_iface": 0,
+            "rx_host": "iceberg03",
+            "rx_mac": "b4:83:51:0a:3e:d0",
+            "rx_ip": "192.168.122.100",
+            "rx_pcie_dev": "0000:61:00.0",
+            "tx_host": "iceberg-wib-104",
+            "tx_mac": "80:d3:36:00:52:63",
+            "tx_ip": "192.168.122.23"
+        }
+    }
+]
