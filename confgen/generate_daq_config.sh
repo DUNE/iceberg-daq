@@ -88,6 +88,7 @@ if [[ $num_unique_elements != ${#wibs[@]} ]]; then
     exit 5
 fi
 
+# Generate DRO maps from input WIB list
 dromap_files=()
 for wib in ${wibs[@]}; do 
     filename="iceberg_dromap_wib_${wib}.json"
@@ -169,7 +170,7 @@ fi
 CONF_DIR=$(cd "${HERE}/../configs/${config_name}" && pwd)
 fddaqconf_gen     -f -c "${HERE}/${daq_json}"         -m "${DROMAP}" "${CONF_DIR}/iceberg_daq_conf"
 hermesmodules_gen -f -c "${HERE}/iceberg_hermes.json" -m "${DROMAP}" "${CONF_DIR}/iceberg_hermes_conf"
-wibconf_gen       -f -c "$HERE/iceberg_wib.json"          $CONF_DIR/iceberg_wib_conf #>> $HERE/../logs/iceberg_wib_conf.log
+wibconf_gen       -f -c "${HERE}/iceberg_wib.json"        $CONF_DIR/iceberg_wib_conf #>> $HERE/../logs/iceberg_wib_conf.log
 
 sed -i 's/monkafka.cern.ch:30092/iceberg01.fnal.gov:30092/g' "${CONF_DIR}/iceberg_daq_conf/boot.json"
 sed -i 's/monkafka.cern.ch:30092/iceberg01.fnal.gov:30092/g' "${CONF_DIR}/iceberg_hermes_conf/boot.json"
