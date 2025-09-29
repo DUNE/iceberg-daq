@@ -1,0 +1,25 @@
+{
+    "boot": {
+        "capture_env_vars": [
+            "TIMING_SHARE",
+            "DETCHANNELMAPS_SHARE",
+            "HERMESMODULES_SHARE"
+        ],
+        "base_command_port": 3333,
+        "connectivity_service_host": "iceberg03",
+        "connectivity_service_interval": 1000,
+        "connectivity_service_port": 30005,
+        "connectivity_service_threads": 2,
+        "disable_trace": false,
+        "ers_impl": "cern",
+        "opmon_impl": "cern",
+        "pocket_url": "127.0.0.1",
+        "start_connectivity_service": false,
+        "use_connectivity_service": false,
+        "process_manager": "ssh"
+    },
+    "hermesmodules": {
+        "host_hermes": "iceberg03"
+    }
+
+}
