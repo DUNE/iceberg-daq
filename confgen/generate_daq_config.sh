@@ -3,15 +3,20 @@
 set -euo pipefail
 
 usage() {
-    echo "Usage: $0 --wibs <'all'|102|105|106> --source <cosmic|pulser|wibpulser|pulsechannel>"
+    echo "Usage: $0 --wibs <'all'|102|105|106> --source <cosmic|pulser|wibpulser|pulsechannel> --name <config_name> [--clean]"
 }
 
-HERE=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
-CONF_DIR=$(cd "${HERE}/../confs" && pwd)
+if [[ $# -eq 0 ]]; then
+    usage
+    exit 1
+fi
 
-SOURCE=""
-clean_mode="false"
+HERE=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
+
 wibs=()
+data_source=""
+config_name=""
+clean_mode="false"
 while [[ $# -gt 0 ]]; do
     case "$1" in
         -h|--help)
@@ -25,14 +30,15 @@ while [[ $# -gt 0 ]]; do
             ;;
         --source)
             shift
-            if [[ $# -ne 1 || "$1" == "-*" ]]; then
+            if [[ "$1" == "-*" ]]; then
                 echo "ERROR: --source requires exactly one of 'cosmic', 'pulser', 'wibpulser', or 'pulsechannel'"
                 usage
                 exit 1
             fi
             case "$1" in
-                cosmic|pulser|wibpulser|pulsechannel)
-                    SOURCE="$1"
+                cosmic | pulser | wibpulser | pulsechannel)
+                    data_source="$1"
+                    shift
                 ;;
                 *)
                     echo "ERROR: --source requires exactly one of 'cosmic', 'pulser', 'wibpulser', or 'pulsechannel'"
@@ -40,8 +46,17 @@ while [[ $# -gt 0 ]]; do
                     exit 1;;
             esac
             ;;
+        --name)
+            shift
+            if [[ -d $1 ]]; then
+                echo "ERROR: A configuration directory named $1 already exists"
+                exit 2
+            fi
+            config_name="$1"
+            shift;;
         --clean)
             clean_mode="true"
+            shift;;
         *)
             echo "ERROR Unknown argument: $1"
             usage
@@ -51,6 +66,28 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Validate arguments
+if [[ -z "$data_source" ]]; then
+    echo "ERROR: --source is required"
+    exit 1
+fi
+
+if [[ -z "$config_name" ]]; then
+    echo "ERROR: --name is required"
+    exit 1
+fi
+config_dir=$(cd "${HERE}/../configs/" && pwd)
+if [[ -d "${config_dir}/${config_name}" ]]; then
+    echo "ERROR: A config area named $config_name already exists in $config_dir"
+    exit 1
+fi
+mkdir -p ${config_dir}/${config_name}
+
+num_unique_elements=$(echo "${wibs[@]}" | tr " " "\n" | uniq -c | wc -l)
+if [[ $num_unique_elements != ${#wibs[@]} ]]; then
+    echo "ERROR: Each provided wib number must be unique"
+    exit 5
+fi
+
 dromap_files=()
 for wib in ${wibs[@]}; do 
     filename="iceberg_dromap_wib_${wib}.json"
@@ -60,7 +97,8 @@ for wib in ${wibs[@]}; do
     fi
     dromap_files+=("iceberg_dromap_wib_${wib}.json")
 done
-jq -s 'add' ${dromap_files[@]} > iceberg_dromap_unique_name_FIX_THIS.json
+dromap_tag=$(echo ${wibs[@]} | tr " " "_")
+jq -s 'add' ${dromap_files[@]} > iceberg_dromap_${dromap_tag}.json
 
 daq_json=""
 wib_json=""
@@ -101,7 +139,7 @@ configure_wibpulser_json() {
 }
 
 # Execute configuration based on selected option
-case "$SOURCE" in
+case "$data_source" in
     cosmic)
         configure_cosmic_json
         ;;
@@ -116,25 +154,22 @@ case "$SOURCE" in
         configure_pulser_json
         ;;
     *)
-        echo "ERROR: Unknown source: $SOURCE"
+        echo "ERROR: Unknown source: $data_source"
         usage
         exit 1
         ;;
 esac
 
-generate_detector_readout_map() {
-    echo "This should combine the individual WIB DRO maps into one"
-}
-
 # Common operations for all configurations
-#DROMAP="${HERE}/iceberg_dromap_wibs_103_104_105.json"
 if [ -z "$daq_json" ]; then
     echo "ERROR: Invalid daq config: $daq_json"
     exit 3
 fi
-fddaqconf_gen -f -c "${HERE}/${daq_json}" -m "${DROMAP}" "${CONF_DIR}/iceberg_daq_conf"
+
+CONF_DIR=$(cd "${HERE}/../configs/${config_name}" && pwd)
+fddaqconf_gen     -f -c "${HERE}/${daq_json}"         -m "${DROMAP}" "${CONF_DIR}/iceberg_daq_conf"
 hermesmodules_gen -f -c "${HERE}/iceberg_hermes.json" -m "${DROMAP}" "${CONF_DIR}/iceberg_hermes_conf"
-wibconf_gen -f -c $HERE/iceberg_wib.json $CONF_DIR/iceberg_wib_conf #>> $HERE/../logs/iceberg_wib_conf.log
+wibconf_gen       -f -c "$HERE/iceberg_wib.json"          $CONF_DIR/iceberg_wib_conf #>> $HERE/../logs/iceberg_wib_conf.log
 
 sed -i 's/monkafka.cern.ch:30092/iceberg01.fnal.gov:30092/g' "${CONF_DIR}/iceberg_daq_conf/boot.json"
 sed -i 's/monkafka.cern.ch:30092/iceberg01.fnal.gov:30092/g' "${CONF_DIR}/iceberg_hermes_conf/boot.json"
