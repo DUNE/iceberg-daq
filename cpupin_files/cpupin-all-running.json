@@ -1,0 +1,26 @@
+{
+   "daq_application": {
+	"--name ruiceberg03eth0": {
+            "threads": {
+		"rte-worker-2": "2",
+		"rte-worker-4": "4",
+
+		"tpset-0": "6",
+		"tpset-1": "8",
+		"tpset-2": "10",
+
+		"postproc-0-0": "12",
+		"postproc-0-1": "14",
+		"postproc-0-2": "16",
+		"postproc-0-3": "18",
+		"postproc-0-4": "20",
+		"postproc-0-5": "22",
+		"postproc-0-6": "24",
+		"postproc-0-7": "26",
+		"consumer-..": "28,3,5,7,9,11,13,15",
+
+		"cleanup-0": "30"
+	    }
+	}
+   }
+}
