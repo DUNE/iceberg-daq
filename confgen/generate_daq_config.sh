@@ -23,6 +23,11 @@ while [[ $# -gt 0 ]]; do
             usage;;
         --wibs)
             shift
+            if [[ $# -eq 0 || $1 == -* ]]; then
+                echo "ERROR: No WIB numbers provided"
+                usage 
+                exit 1
+            fi
             while [[ $# -gt 0 && $1 != -* ]]; do
                 wibs+=("$1")
                 shift
@@ -82,9 +87,14 @@ if [[ -d "${config_dir}/${config_name}" ]]; then
 fi
 mkdir -p ${config_dir}/${config_name}
 
+if [[ "${wibs[@]}" == "all" ]]; then 
+    wibs=( '102' '105' '106' ) 
+fi
+
 num_unique_elements=$(echo "${wibs[@]}" | tr " " "\n" | uniq -c | wc -l)
 if [[ $num_unique_elements != ${#wibs[@]} ]]; then
     echo "ERROR: Each provided wib number must be unique"
+    echo "${wibs[@]}"
     exit 5
 fi
 
