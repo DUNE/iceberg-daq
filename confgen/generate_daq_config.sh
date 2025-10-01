@@ -92,17 +92,16 @@ fi
 dromap_files=()
 for wib in ${wibs[@]}; do 
     filename="iceberg_dromap_wib_${wib}.json"
-    if [[ ! -f "$filename" ]]; then
+    if [[ ! -f "${filename}" ]]; then
         echo "ERROR: No detector readout map file exists for WIB $wib"
         exit 4
     fi
-    dromap_files+=("iceberg_dromap_wib_${wib}.json")
+    dromap_files+=("${filename}")
 done
 dromap_tag=$(echo ${wibs[@]} | tr " " "_")
-jq -s 'add' ${dromap_files[@]} > iceberg_dromap_${dromap_tag}.json
-
-daq_json=""
-wib_json=""
+dromap="iceberg_dromap_${dromap_tag}.json"
+jq -s 'add' ${dromap_files[@]} > "$dromap"
+echo "DRO map: $(cat ${dromap})"
 
 configure_cosmic_json() {
     cp -pf "${HERE}/iceberg_daq_eth.json" "${HERE}/iceberg_daq_eth.json.sav"
@@ -140,6 +139,7 @@ configure_wibpulser_json() {
 }
 
 # Execute configuration based on selected option
+daq_json=""
 case "$data_source" in
     cosmic)
         configure_cosmic_json
@@ -168,8 +168,8 @@ if [ -z "$daq_json" ]; then
 fi
 
 CONF_DIR=$(cd "${HERE}/../configs/${config_name}" && pwd)
-fddaqconf_gen     -f -c "${HERE}/${daq_json}"         -m "${DROMAP}" "${CONF_DIR}/iceberg_daq_conf"
-hermesmodules_gen -f -c "${HERE}/iceberg_hermes.json" -m "${DROMAP}" "${CONF_DIR}/iceberg_hermes_conf"
+fddaqconf_gen     -f -c "${HERE}/${daq_json}"         -m "${dromap}" "${CONF_DIR}/iceberg_daq_conf"
+hermesmodules_gen -f -c "${HERE}/iceberg_hermes.json" -m "${dromap}" "${CONF_DIR}/iceberg_hermes_conf"
 wibconf_gen       -f -c "${HERE}/iceberg_wib.json"        $CONF_DIR/iceberg_wib_conf #>> $HERE/../logs/iceberg_wib_conf.log
 
 sed -i 's/monkafka.cern.ch:30092/iceberg01.fnal.gov:30092/g' "${CONF_DIR}/iceberg_daq_conf/boot.json"
