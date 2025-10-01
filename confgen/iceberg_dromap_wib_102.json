@@ -1,10 +1,10 @@
 [
     {
-        "src_id": 8,
+        "src_id": 0,
         "geo_id": {
             "det_id": 3,
             "crate_id": 8,
-            "slot_id": 4,
+            "slot_id": 1,
             "stream_id": 0
         },
         "kind": "eth",
@@ -16,17 +16,17 @@
             "rx_mac": "b4:83:51:0a:3e:d0",
             "rx_ip": "192.168.122.100",
             "rx_pcie_dev": "0000:61:00.0",
-            "tx_host": "iceberg-wib-105",
-            "tx_mac": "80:d3:36:00:52:64",
-            "tx_ip": "192.168.122.24"
+            "tx_host": "iceberg-wib-103",
+            "tx_mac": "80:d3:36:00:52:60",
+            "tx_ip": "192.168.122.20"
         }
     },
     {
-        "src_id": 9,
+        "src_id": 1,
         "geo_id": {
             "det_id": 3,
             "crate_id": 8,
-            "slot_id": 4,
+            "slot_id": 1,
             "stream_id": 1
         },
         "kind": "eth",
@@ -38,17 +38,17 @@
             "rx_mac": "b4:83:51:0a:3e:d0",
             "rx_ip": "192.168.122.100",
             "rx_pcie_dev": "0000:61:00.0",
-            "tx_host": "iceberg-wib-105",
-            "tx_mac": "80:d3:36:00:52:64",
-            "tx_ip": "192.168.122.24"
+            "tx_host": "iceberg-wib-103",
+            "tx_mac": "80:d3:36:00:52:60",
+            "tx_ip": "192.168.122.20"
         }
     },
     {
-        "src_id": 10,
+        "src_id": 2,
         "geo_id": {
             "det_id": 3,
             "crate_id": 8,
-            "slot_id": 4,
+            "slot_id": 1,
             "stream_id": 2
         },
         "kind": "eth",
@@ -60,17 +60,17 @@
             "rx_mac": "b4:83:51:0a:3e:d0",
             "rx_ip": "192.168.122.100",
             "rx_pcie_dev": "0000:61:00.0",
-            "tx_host": "iceberg-wib-105",
-            "tx_mac": "80:d3:36:00:52:64",
-            "tx_ip": "192.168.122.24"
+            "tx_host": "iceberg-wib-103",
+            "tx_mac": "80:d3:36:00:52:60",
+            "tx_ip": "192.168.122.20"
         }
     },
     {
-        "src_id": 11,
+        "src_id": 3,
         "geo_id": {
             "det_id": 3,
             "crate_id": 8,
-            "slot_id": 4,
+            "slot_id": 1,
             "stream_id": 3
         },
         "kind": "eth",
@@ -82,17 +82,17 @@
             "rx_mac": "b4:83:51:0a:3e:d0",
             "rx_ip": "192.168.122.100",
             "rx_pcie_dev": "0000:61:00.0",
-            "tx_host": "iceberg-wib-105",
-            "tx_mac": "80:d3:36:00:52:64",
-            "tx_ip": "192.168.122.24"
+            "tx_host": "iceberg-wib-103",
+            "tx_mac": "80:d3:36:00:52:60",
+            "tx_ip": "192.168.122.20"
         }
     },
     {
-        "src_id": 12,
+        "src_id": 4,
         "geo_id": {
             "det_id": 3,
             "crate_id": 8,
-            "slot_id": 4,
+            "slot_id": 1,
             "stream_id": 64
         },
         "kind": "eth",
@@ -104,17 +104,17 @@
             "rx_mac": "b4:83:51:0a:3e:d0",
             "rx_ip": "192.168.122.100",
             "rx_pcie_dev": "0000:61:00.0",
-            "tx_host": "iceberg-wib-105",
-            "tx_mac": "80:d3:36:00:52:65",
-            "tx_ip": "192.168.122.25"
+            "tx_host": "iceberg-wib-103",
+            "tx_mac": "80:d3:36:00:52:61",
+            "tx_ip": "192.168.122.21"
         }
     },
     {
-        "src_id": 13,
+        "src_id": 5,
         "geo_id": {
             "det_id": 3,
             "crate_id": 8,
-            "slot_id": 4,
+            "slot_id": 1,
             "stream_id": 65
         },
         "kind": "eth",
@@ -126,17 +126,17 @@
             "rx_mac": "b4:83:51:0a:3e:d0",
             "rx_ip": "192.168.122.100",
             "rx_pcie_dev": "0000:61:00.0",
-            "tx_host": "iceberg-wib-105",
-            "tx_mac": "80:d3:36:00:52:65",
-            "tx_ip": "192.168.122.25"
+            "tx_host": "iceberg-wib-103",
+            "tx_mac": "80:d3:36:00:52:61",
+            "tx_ip": "192.168.122.21"
         }
     },
     {
-        "src_id": 14,
+        "src_id": 6,
         "geo_id": {
             "det_id": 3,
             "crate_id": 8,
-            "slot_id": 4,
+            "slot_id": 1,
             "stream_id": 66
         },
         "kind": "eth",
@@ -148,17 +148,17 @@
             "rx_mac": "b4:83:51:0a:3e:d0",
             "rx_ip": "192.168.122.100",
             "rx_pcie_dev": "0000:61:00.0",
-            "tx_host": "iceberg-wib-105",
-            "tx_mac": "80:d3:36:00:52:65",
-            "tx_ip": "192.168.122.25"
+            "tx_host": "iceberg-wib-103",
+            "tx_mac": "80:d3:36:00:52:61",
+            "tx_ip": "192.168.122.21"
         }
     },
     {
-        "src_id": 15,
+        "src_id": 7,
         "geo_id": {
             "det_id": 3,
             "crate_id": 8,
-            "slot_id": 4,
+            "slot_id": 1,
             "stream_id": 67
         },
         "kind": "eth",
@@ -170,9 +170,9 @@
             "rx_mac": "b4:83:51:0a:3e:d0",
             "rx_ip": "192.168.122.100",
             "rx_pcie_dev": "0000:61:00.0",
-            "tx_host": "iceberg-wib-105",
-            "tx_mac": "80:d3:36:00:52:65",
-            "tx_ip": "192.168.122.25"
+            "tx_host": "iceberg-wib-103",
+            "tx_mac": "80:d3:36:00:52:61",
+            "tx_ip": "192.168.122.21"
         }
     }
 ]
