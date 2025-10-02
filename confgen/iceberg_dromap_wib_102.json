@@ -16,7 +16,7 @@
             "rx_mac": "b4:83:51:0a:3e:d0",
             "rx_ip": "192.168.122.100",
             "rx_pcie_dev": "0000:61:00.0",
-            "tx_host": "iceberg-wib-103",
+            "tx_host": "iceberg-wib-102",
             "tx_mac": "80:d3:36:00:52:60",
             "tx_ip": "192.168.122.20"
         }
@@ -38,7 +38,7 @@
             "rx_mac": "b4:83:51:0a:3e:d0",
             "rx_ip": "192.168.122.100",
             "rx_pcie_dev": "0000:61:00.0",
-            "tx_host": "iceberg-wib-103",
+            "tx_host": "iceberg-wib-102",
             "tx_mac": "80:d3:36:00:52:60",
             "tx_ip": "192.168.122.20"
         }
@@ -60,7 +60,7 @@
             "rx_mac": "b4:83:51:0a:3e:d0",
             "rx_ip": "192.168.122.100",
             "rx_pcie_dev": "0000:61:00.0",
-            "tx_host": "iceberg-wib-103",
+            "tx_host": "iceberg-wib-102",
             "tx_mac": "80:d3:36:00:52:60",
             "tx_ip": "192.168.122.20"
         }
@@ -82,7 +82,7 @@
             "rx_mac": "b4:83:51:0a:3e:d0",
             "rx_ip": "192.168.122.100",
             "rx_pcie_dev": "0000:61:00.0",
-            "tx_host": "iceberg-wib-103",
+            "tx_host": "iceberg-wib-102",
             "tx_mac": "80:d3:36:00:52:60",
             "tx_ip": "192.168.122.20"
         }
@@ -104,7 +104,7 @@
             "rx_mac": "b4:83:51:0a:3e:d0",
             "rx_ip": "192.168.122.100",
             "rx_pcie_dev": "0000:61:00.0",
-            "tx_host": "iceberg-wib-103",
+            "tx_host": "iceberg-wib-102",
             "tx_mac": "80:d3:36:00:52:61",
             "tx_ip": "192.168.122.21"
         }
@@ -126,7 +126,7 @@
             "rx_mac": "b4:83:51:0a:3e:d0",
             "rx_ip": "192.168.122.100",
             "rx_pcie_dev": "0000:61:00.0",
-            "tx_host": "iceberg-wib-103",
+            "tx_host": "iceberg-wib-102",
             "tx_mac": "80:d3:36:00:52:61",
             "tx_ip": "192.168.122.21"
         }
@@ -148,7 +148,7 @@
             "rx_mac": "b4:83:51:0a:3e:d0",
             "rx_ip": "192.168.122.100",
             "rx_pcie_dev": "0000:61:00.0",
-            "tx_host": "iceberg-wib-103",
+            "tx_host": "iceberg-wib-102",
             "tx_mac": "80:d3:36:00:52:61",
             "tx_ip": "192.168.122.21"
         }
@@ -170,7 +170,7 @@
             "rx_mac": "b4:83:51:0a:3e:d0",
             "rx_ip": "192.168.122.100",
             "rx_pcie_dev": "0000:61:00.0",
-            "tx_host": "iceberg-wib-103",
+            "tx_host": "iceberg-wib-102",
             "tx_mac": "80:d3:36:00:52:61",
             "tx_ip": "192.168.122.21"
         }
