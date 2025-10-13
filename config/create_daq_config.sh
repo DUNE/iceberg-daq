@@ -154,9 +154,18 @@ configure_wibpulser_json() {
     echo "**************************************************************"
 }
 
+generate_top_config() {
+    local base_top_config="${base_config_dir}/top_iceberg.json"
+    generated_top_config="${generated_config_dir}/top_iceberg.json"
+    cp -pf "${base_top_config}" "${generated_top_config}"
+    #sed -i "s|XPATHX|${config_name}|g" "${generated_top_config}"
+    #sed -i "s|XPATHX|${config_name}|g" "${generated_top_config}"
+}
+
 # Execute configuration based on selected option
 daq_json=""
 base_daq_config="${base_config_dir}/iceberg_daq_eth.json"
+generated_top_config=""
 generated_daq_config=""
 case "$data_source" in
     cosmic)
@@ -178,6 +187,8 @@ case "$data_source" in
         exit 1
         ;;
 esac
+
+generate_top_config || exit 234
 
 # Common operations for all configurations
 if [ -z "$daq_json" ]; then

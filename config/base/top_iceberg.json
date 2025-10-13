@@ -1,6 +1,6 @@
 {
     "apparatus_id": "iceberg",
-    "wib": "XPATHX/iceberg_wib_conf",
-    "hermes": "XPATHX/iceberg_hermes_conf",
-    "daq": "XPATHX/iceberg_daq_conf"
+    "wib": "iceberg_wib_conf",
+    "hermes": "iceberg_hermes_conf",
+    "daq": "iceberg_daq_conf"
 }
