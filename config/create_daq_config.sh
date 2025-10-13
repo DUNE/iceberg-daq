@@ -158,8 +158,8 @@ generate_top_config() {
     local base_top_config="${base_config_dir}/top_iceberg.json"
     generated_top_config="${generated_config_dir}/top_iceberg.json"
     cp -pf "${base_top_config}" "${generated_top_config}"
-    #sed -i "s|XPATHX|${config_name}|g" "${generated_top_config}"
-    #sed -i "s|XPATHX|${config_name}|g" "${generated_top_config}"
+    sed -i "s|XPATHX|${generated_config_dir}|g" "${generated_top_config}"
+    sed -i "s|XPATHX|${generated_config_dir}|g" "${generated_top_config}"
 }
 
 # Execute configuration based on selected option
