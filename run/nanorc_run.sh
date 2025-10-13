@@ -120,51 +120,52 @@ set_run_number() {
 }
 
 post_run() { : 1=rr 2=status
-    #test -d RunConfs/RunConf_$rr; RC_status=$?
-    test -d RunConfs/RunConf_$run_number; RC_status=$?
-    echo "nanorc status = $status; RunConf_$rr status = $RC_status"
+    test -d $runconfs_dir/RunConf_$run_number; RC_status=$?
+    echo "nanorc status = $status; RunConf_$run_number status = $RC_status"
+    if [[ ! -d "$runconfs_dir/RunConf_$run_number" ]]; then
+        echo "ERROR: No RunConf directory was created at $runconfs_dir/RunConf_$run_number" >&2 
+        exit 8
+    fi
     files=$(find . -maxdepth 1 -name info_\* -newermt "$start") # maybe info_* file depends in opmon_impl
-    if test -d RunConfs/RunConf_$rr; then
+    if test -d RunConfs/RunConf_$run_number; then
         if [ -n "file" ]; then
-            mkdir info/info_$rr
-            mv $files info/info_$rr
+            mkdir info/info_$run_number
+            mv $files info/info_$run_number
         fi
         cd logs
         files=$(find . -type f -newermt "$start")
-        echo moving $files to logs/log_$rr
-        mkdir log_$rr
-        mv $files log_$rr
-        output_data_files=$(printf "iceberghd_raw_run%06d_*_dataflow0_datawriter_0_*.hdf5" $rr)
-        #output_data_files=$(ls /home1/dunecet/dropbox/$output_data_files)
-        #if [ -f "$(echo \"$output_data_files\" | head -1)" ];then
-        #    echo moving $output_data_files to /nvme/dunecet/dropbox
-        #    mv $output_data_files /nvme/dunecet/dropbox
-        #fi
-        else
+        echo moving $files to logs/log_$run_number
+        mkdir log_$run_number
+        mv $files log_$run_number
+        output_data_files=$(printf "iceberghd_raw_run%06d_*_dataflow0_datawriter_0_*.hdf5" $run_number)
+    else
         test -n "$files" && mv $files info
     fi    
 }
 
 start=$(date +'%Y-%m-%d %H:%M:%S')   # used in 2 cases, next
 run_number=0
-runconfs_dir=""                      # Set in get_run_number
+runconfs_dir="$DBT_AREA_ROOT/runarea/RunConfs"
 iceberg_runarea="${DBT_AREA_ROOT}/runarea"
 [[ -d "$iceberg_runarea" ]] || { echo "ERROR: No run area found in $iceberg_runarea"; exit 8; }
 case "$mode" in
 confdir)
-    runconfs_dir="$DBT_AREA_ROOT/runarea/RunConfs"
     #rr=$(run_num); echo "Attempting to start data taking run $rr"
     #runconfs_dir="$DBT_AREA_ROOT/runarea/RunConfs"
     #rr=$(get_run_number) 
     [[ -d "$runconfs_dir" ]] || { echo "ERROR: RunConf directory $runconfs_dir does not exist." >&2; exit 11; }
     set_run_number
-    echo "Attempting to start data taking run $run_number with confdir $confdir"
-    echo "STOPPING CONFDIR"
-    exit 125
-    echo "Using config in $confdir/top_iceberg.json:"; grep -v '^[{}]' $confdir/top_iceberg.json
-    nanorc --log-path $PWD/logs --partition-number 3  --cfg-dumpdir $PWD/RunConfs --logbook-prefix logs/logbook \
-	   $confdir/top_iceberg.json dunecet-iceberg boot conf start_run $run_number \
+    #echo "Attempting to start data taking run $run_number with confdir $confdir"
+    echo "Attempting to start data taking run $run_number with config $config"
+    #echo "STOPPING CONFDIR"
+    #exit 125
+    #echo "Using config in $confdir/top_iceberg.json:"; grep -v '^[{}]' $confdir/top_iceberg.json
+    echo "Using config in $generated_config_dir/$config/top_iceberg.json:"; grep -v '^[{}]' $generated_config_dir/$config/top_iceberg.json || exit 987
+    nanorc --log-path $iceberg_runarea/logs --partition-number 3  --cfg-dumpdir $runconfs_dir --logbook-prefix logs/logbook \
+	   $generated_config_dir/$config/top_iceberg.json dunecet-iceberg boot conf start_run $run_number \
 	   wait $duration stop_run scrap terminate
+    #: nanorc --log-path $iceberg_runarea/logs --partition-number 3 --cfg-dumpdir $runconfs_dir --logbook-prefix logs/logbook \
+    #     $hermes_config_dir iceberg-hermes boot start_run $run_number start_shell
     status=$?
     post_run
     ;;
@@ -209,7 +210,6 @@ hermes)
     fi
     nanorc --log-path $iceberg_runarea/logs --partition-number 3 --cfg-dumpdir $runconfs_dir --logbook-prefix logs/logbook \
 	   $hermes_config_dir iceberg-hermes boot start_run $run_number start_shell
-	   #confs/iceberg_hermes_conf iceberg-hermes boot start_run $run_number start_shell
     ;;
 *)
     echo "Invalid mode: $mode"
