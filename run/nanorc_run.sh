@@ -19,17 +19,12 @@ EOF
     exit 1
 }
 
-duration=30
-mode=run
-old_ver_dir=/home/dunecet/dunedaq/*-v4.*/runarea/RunConfs/RunConf_?????*
-
 set -euo pipefail
 
-if [[ -z $DBT_AREA_ROOT ]]; then
-    echo "ERROR: The DUNE DAQ environment is not setup."
-    exit 1
-fi
+[[ -n "$DBT_AREA_ROOT" ]] || { echo "ERROR: The DUNE DAQ environment is not setup."; exit 1; }
 
+duration=30
+mode=run
 while [[ $# -gt 0 ]]; do
     case "$1" in
         -h|-\?|--help)
@@ -40,27 +35,18 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         --mode)
-            if [[ $# -lt 2 ]]; then
-                echo "ERROR: --mode requires an argument"
-                exit 1
-            fi
+            [[ $# -eq 2 ]] || { echo "ERROR: --mode requires an argument."; exit 1; }
             mode="$2"
             shift 2
             ;;
         --confdir)
-            if [[ $# -lt 2 ]]; then
-                echo "ERROR: --confdir requires an argument"
-                exit 1
-            fi
+            [[ $# -eq 2 ]] || { echo "ERROR: --confdir requires an argument."; exit 1; }
             mode="confdir"
             confdir="$2"
             shift 2
             ;;
         -t)
-            if [[ $# -lt 2 ]]; then
-                echo "ERROR: -t requires a duration (in seconds)"
-                exit 1
-            fi
+            [[ $# -eq 2 ]] || { echo "ERROR: -t requires a duration (in seconds)."; exit 1; }
             duration="$2"
             shift 2
             ;;
@@ -78,7 +64,7 @@ done
 get_run_number() {
     local rn=0
     case "$mode" in
-        run)
+        run|confdir)
             runconfs_dir="$DBT_AREA_ROOT/runarea/RunConfs"
             rn=16000
             ;;
@@ -91,10 +77,7 @@ get_run_number() {
             exit 7
             ;;
     esac
-    if [[ ! -d "$runconfs_dir" ]]; then
-        echo "No RunConfs directory found in $runconfs_dir; cannot determine last run number."
-        exit 6
-    fi
+    [[ -d "$runconfs_dir" ]] || { echo "No RunConfs directory found in $runconfs_dir; cannot determine last run number."; exit 6; }
 
     while [[ -d "$runconfs_dir/RunConf_$rn" ]]; do
 	    rn=$(($rn+1))
@@ -129,6 +112,9 @@ post_run() { : 1=rr 2=status
 
 
 start=$(date +'%Y-%m-%d %H:%M:%S')   # used in 2 cases, next
+runconfs_dir=""                      # Set in get_run_number
+iceberg_runarea="${DBT_AREA_ROOT}/runarea"
+[[ -d "$iceberg_runarea" ]] || { echo "ERROR: No run area found in $iceberg_runarea"; exit 8; }
 case $mode in
 confdir)
     #rr=$(run_num); echo "Attempting to start data taking run $rr"
