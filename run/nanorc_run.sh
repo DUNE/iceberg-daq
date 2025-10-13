@@ -1,60 +1,124 @@
-#!/bin/sh
+#!/bin/bash
 
-USAGE="\
-  usage: `basename $0` [-h|--help] [--mode <run|hermes>]
-example: `basename $0`
-Other options:
--t <seconds>    # run duration in seconds; default (w/o -t) is 30
---confdir <dir> alt dir for top_iceberg.json (i.e. default confir is \".\")
-"
+usage() {
+    local prog=$(basename "$0")
+    cat << EOF
+Usage: $prog [OPTIONS]
+
+Configure and run nanorc for Iceberg.
+
+Options:
+    -t <seconds>          Run duration in seconds
+                          [default: 30]
+    --confdir <path>      Directory containing a file named 'top_iceberg.json' for run configuration
+                          [default: current working directory]
+
+Example:
+    ./nanorc_run.sh -t 60 --confdir path/to/cosmic_config
+EOF
+    exit 1
+}
 
 duration=30
 mode=run
 old_ver_dir=/home/dunecet/dunedaq/*-v4.*/runarea/RunConfs/RunConf_?????*
 
-set -u   # i.e error if no $2
-while expr "x${1-}" : x- >/dev/null;do
+set -euo pipefail
+
+if [[ -z $DBT_AREA_ROOT ]]; then
+    echo "ERROR: The DUNE DAQ environment is not setup."
+    exit 1
+fi
+
+while [[ $# -gt 0 ]]; do
     case "$1" in
-    -h|-\?|--help) echo "$USAGE";exit;;
-    -x)     set -x;;
-    --mode) mode=$2; shift;;
-    --confdir) mode=confdir; confdir=$2; shift;;
-    -t) duration=$2; shift;;
-    *) echo unknown; exit;;
+        -h|-\?|--help)
+            usage
+            ;;
+        -x)
+            set -x
+            shift
+            ;;
+        --mode)
+            if [[ $# -lt 2 ]]; then
+                echo "ERROR: --mode requires an argument"
+                exit 1
+            fi
+            mode="$2"
+            shift 2
+            ;;
+        --confdir)
+            if [[ $# -lt 2 ]]; then
+                echo "ERROR: --confdir requires an argument"
+                exit 1
+            fi
+            mode="confdir"
+            confdir="$2"
+            shift 2
+            ;;
+        -t)
+            if [[ $# -lt 2 ]]; then
+                echo "ERROR: -t requires a duration (in seconds)"
+                exit 1
+            fi
+            duration="$2"
+            shift 2
+            ;;
+        *)
+            echo "ERROR: Unknown option: $1"
+            echo "$USAGE"
+            exit 1
+            ;;
     esac
-    shift
 done
 
-test `basename $PWD` = runarea || { echo Must be in runarea directory; exit; }
+# TODO: Make sure this script is not directory dependent
+#test "$(basename "$PWD")" = "runarea" || { echo "Must be in runarea directory"; exit; }
 
-last_old_ver_run_num=`/bin/ls -dt $old_ver_dir|grep -Eo '[0-9]{5,}$'|sort -nr|head -1`
-test -n "$last_old_ver_run_num" && last_old_ver_run_num=`expr $last_old_ver_run_num + 1`
-run_num() { : ${1-} is optional starting number
-    test $# -eq 1 && rn=$1 || rn=${last_old_ver_run_num:-11000}
-    while test -d $DBT_AREA_ROOT/runarea/RunConfs/RunConf_$rn;do
-	rn=$(($rn+1))
+get_run_number() {
+    local rn=0
+    case "$mode" in
+        run)
+            runconfs_dir="$DBT_AREA_ROOT/runarea/RunConfs"
+            rn=16000
+            ;;
+        hermes)
+            runconfs_dir="$DBT_AREA_ROOT/runarea/RunConfs/hermes"
+            rn=1
+            ;;
+        *)
+            echo "ERROR: Invalid mode $mode when determining run number."
+            exit 7
+            ;;
+    esac
+    if [[ ! -d "$runconfs_dir" ]]; then
+        echo "No RunConfs directory found in $runconfs_dir; cannot determine last run number."
+        exit 6
+    fi
+
+    while [[ -d "$runconfs_dir/RunConf_$rn" ]]; do
+	    rn=$(($rn+1))
     done
     echo $rn
 }
 
-
 post_run() { : 1=rr 2=status
     test -d RunConfs/RunConf_$rr; RC_status=$?
     echo "nanorc status = $status; RunConf_$rr status = $RC_status"
-    files=`find . -maxdepth 1 -name info_\* -newermt "$start"` # maybe info_* file depends in opmon_impl
+    files=$(find . -maxdepth 1 -name info_\* -newermt "$start") # maybe info_* file depends in opmon_impl
     if test -d RunConfs/RunConf_$rr;then
 	if [ -n "file" ];then
 	    mkdir info/info_$rr
 	    mv $files info/info_$rr
 	fi
 	cd logs
-	files=`find . -type f -newermt "$start"`
+	files=$(find . -type f -newermt "$start")
 	echo moving $files to logs/log_$rr
 	mkdir log_$rr
 	mv $files log_$rr
-	output_data_files=`printf "iceberghd_raw_run%06d_*_dataflow0_datawriter_0_*.hdf5" $rr`
-	#output_data_files=`ls /home1/dunecet/dropbox/$output_data_files`
-	#if [ -f "`echo \"$output_data_files\" | head -1`" ];then
+	output_data_files=$(printf "iceberghd_raw_run%06d_*_dataflow0_datawriter_0_*.hdf5" $rr)
+	#output_data_files=$(ls /home1/dunecet/dropbox/$output_data_files)
+	#if [ -f "$(echo \"$output_data_files\" | head -1)" ];then
 	#    echo moving $output_data_files to /nvme/dunecet/dropbox
 	#    mv $output_data_files /nvme/dunecet/dropbox
 	#fi
@@ -64,10 +128,13 @@ post_run() { : 1=rr 2=status
 }
 
 
-start=`date +'%Y-%m-%d %H:%M:%S'`   # used in 2 cases, next
+start=$(date +'%Y-%m-%d %H:%M:%S')   # used in 2 cases, next
 case $mode in
 confdir)
-    rr=$(run_num); echo "Attempting to start data taking run $rr"
+    #rr=$(run_num); echo "Attempting to start data taking run $rr"
+    rr=$(get_run_number); echo "Attempting to start data taking run $rr with confdir $confdir"
+    echo "STOPPING CONFDIR"
+    exit 125
     echo "Using config in $confdir/top_iceberg.json:"; grep -v '^[{}]' $confdir/top_iceberg.json
     nanorc --log-path $PWD/logs --partition-number 3  --cfg-dumpdir $PWD/RunConfs --logbook-prefix logs/logbook \
 	   $confdir/top_iceberg.json dunecet-iceberg boot conf start_run $rr \
@@ -76,7 +143,10 @@ confdir)
     post_run
     ;;
 run)
-    rr=$(run_num); echo "Attempting to start data taking run $rr"
+    #rr=$(run_num); echo "Attempting to start data taking run $rr"
+    rr=$(get_run_number); echo "Attempting to start data taking run $rr"
+    echo "STOPPING RUN"
+    exit 126
     echo "Using config in top_iceberg.json:"; grep -v '^[{}]' top_iceberg.json
     echo "dts Sent cmd counters:"
     dtsbutler mst  BOREAS_TLU_ICEBERG status | awk '/Sent cmd counters/,/^$/'
@@ -95,7 +165,10 @@ run)
     post_run
     ;;
 hermes)
-    rr=$(run_num 1); echo "Attempting to start hermes run $rr"
+    #rr=$(run_num 1); echo "Attempting to start hermes run $rr"
+    rr=$(get_run_number); echo "Attempting to start hermes run $rr"
+    echo "STOPPING HERMES"
+    exit 128
     nanorc --log-path $PWD/logs --partition-number 3 --cfg-dumpdir $PWD/RunConfs --logbook-prefix logs/logbook \
 	   confs/iceberg_hermes_conf iceberg-hermes boot start_run $rr start_shell
     ;;
