@@ -2,18 +2,44 @@
 
 set -euo pipefail
 
+HERE=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
+base_config_dir=$(cd "${HERE}/base/" && pwd)
+generated_config_root=$(cd "${HERE}/generated/" && pwd)
+
 usage() {
-    echo "Usage: $0 --wibs <'all'|102|105|106> --source <cosmic|pulser|wibpulser|pulsechannel> --name <config_name> [--clean]"
+local prog=$(basename "$0")
+    cat << EOF
+Usage: $prog --wibs <'all'|102|105|106> --source <cosmic|pulser|wibpulser|pulsechannel> --name <config_name> [--clean]"
+
+Generate configurations for Iceberg DAQ runs.
+
+Required arguments:
+  --wibs
+        List of three-digit WIB identifier numbers.
+        Allowed individual values are 102, 105, and 106. Use 'all' to configure all WIBs.
+  --source
+        Source of data.
+        Allowed values are 'cosmic' and 'pulser'. 'wibpusler' and 'pulsechannel' are not currently enabled.
+  --name
+        Name of the generated configuration.
+        A directory with this name will be created under ${generated_config_root}. The config name
+        is also used as input to the nanorc_run script.
+
+Optional arguments:
+  --clean
+        Remove existing configuration directory before regenerating.
+  -h, --help
+        Show this message and exit.
+
+Example:
+    ./$prog --wibs 102 105 --source pulser --name pulser_wibs_102_105
+EOF
 }
 
 if [[ $# -eq 0 ]]; then
     usage
     exit 1
 fi
-
-HERE=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
-base_config_dir=$(cd "${HERE}/base/" && pwd)
-generated_config_root=$(cd "${HERE}/generated/" && pwd)
 
 wibs=()
 data_source=""
@@ -36,34 +62,29 @@ while [[ $# -gt 0 ]]; do
             done
             ;;
         --source)
-            shift
-            if [[ "$1" == "-*" ]]; then
-                echo "ERROR: --source requires exactly one of 'cosmic', 'pulser', 'wibpulser', or 'pulsechannel'"
-                usage
+            if [[ $# -eq 1 || "$2" == -* ]]; then
+                echo "ERROR: --source requires an argument." >&2
                 exit 1
             fi
-            case "$1" in
-                cosmic | pulser | wibpulser | pulsechannel)
-                    data_source="$1"
-                    shift
-                ;;
-                *)
-                    echo "ERROR: --source requires exactly one of 'cosmic', 'pulser', 'wibpulser', or 'pulsechannel'"
-                    usage
-                    exit 1;;
-            esac
+            if [[ "$2" != "pulser" && "$2" != "cosmic" ]]; then
+                echo "ERROR: Invalid --source argument." >&2
+                exit 1
+            fi
+            data_source="$2"
+            shift 2
             ;;
         --name)
-            shift
-            if [[ -d $1 ]]; then
-                echo "ERROR: A configuration directory named $1 already exists"
-                exit 2
+            if [[ $# -eq 1 || "$2" == -* ]]; then
+                echo "ERROR: --name requires an argument" >&2
+                exit 1
             fi
-            config_name="$1"
-            shift;;
+            config_name="$2"
+            shift 2
+            ;;
         --clean)
             clean_mode="true"
-            shift;;
+            shift
+            ;;
         *)
             echo "ERROR Unknown argument: $1"
             usage
@@ -83,6 +104,27 @@ if [[ -z "$config_name" ]]; then
     exit 1
 fi
 
+if [[ "${wibs[@]}" == "all" ]]; then
+    wibs=( '102' '105' '106' )
+fi
+
+invalid_wib="false"
+for wib in "${wibs[@]}"; do
+    if [[ "$wib" != "102" && "$wib" != "105" && "$wib" != "106" ]]; then
+        echo "ERROR: Invalid --wibs argument: $wib". >&2
+        invalid_wib="true"
+    fi
+done
+[[ "$invalid_wib" == "false" ]] || exit 1
+
+num_unique_elements=$(echo "${wibs[@]}" | tr " " "\n" | uniq -c | wc -l)
+if [[ $num_unique_elements != ${#wibs[@]} ]]; then
+    echo "ERROR: Each provided wib number must be unique"
+    echo "${wibs[@]}"
+    exit 5
+fi
+
+# Create a config area. Remove an already existing area if --clean is provided.
 generated_config_dir="${generated_config_root}"/"${config_name}"
 if [[ -d "${generated_config_dir}" ]]; then
     if [[ "$clean_mode" == "true" ]]; then
@@ -96,17 +138,6 @@ if [[ -d "${generated_config_dir}" ]]; then
 fi
 mkdir -p ${generated_config_dir}
 
-if [[ "${wibs[@]}" == "all" ]]; then 
-    wibs=( '102' '105' '106' ) 
-fi
-
-num_unique_elements=$(echo "${wibs[@]}" | tr " " "\n" | uniq -c | wc -l)
-if [[ $num_unique_elements != ${#wibs[@]} ]]; then
-    echo "ERROR: Each provided wib number must be unique"
-    echo "${wibs[@]}"
-    exit 5
-fi
-
 # Generate detector readout (DRO) maps from input WIB list
 base_dromap_files=()
 for wib in ${wibs[@]}; do 
@@ -118,12 +149,10 @@ for wib in ${wibs[@]}; do
     dromap_files+=("${filename}")
 done
 dromap="${generated_config_dir}/wib_dromap.json"
-#jq -s 'add' ${dromap_files[@]} > "${config_dir}/generated/${config_name}/wib_dromap.json"
 jq -s 'add' ${dromap_files[@]} > "${dromap}"
 
 configure_cosmic_json() {
     generated_daq_config="${generated_config_dir}/iceberg_daq_eth_cosmic.json"
-    #cp -pf "${HERE}/iceberg_daq_eth.json" "${HERE}/iceberg_daq_eth.json.sav"
     cp -pf "${base_daq_config}" "${generated_daq_config}"
     sed -i '
         /"signal"/s/[0-9][0-9]*/32/
@@ -137,10 +166,8 @@ configure_cosmic_json() {
 
 configure_pulser_json() {
     generated_daq_config="${generated_config_dir}/iceberg_daq_eth_pulser.json"
-    #cp -pf "${HERE}/iceberg_daq_eth.json" "${HERE}/iceberg_daq_eth.json.sav"
     cp -pf "${base_daq_config}" "${generated_daq_config}"
     echo "Configuring for pulser"
-    #cp -pf "${HERE}/iceberg_daq_eth.json" "${HERE}/iceberg_daq_eth.json.sav"
     sed -i '
         /"signal"/s/[0-9][0-9]*/16777216/
         /tc_type_name/s/k[a-zA-Z]*/kDTSPulser/
@@ -162,6 +189,7 @@ configure_wibpulser_json() {
 }
 
 generate_top_config() {
+    # Create a "top" configuration file that points to the correct generated config areas
     local base_top_config="${base_config_dir}/top_iceberg.json"
     generated_top_config="${generated_config_dir}/top_iceberg.json"
     cp -pf "${base_top_config}" "${generated_top_config}"
@@ -174,6 +202,12 @@ generate_wib_config() {
     jq --argjson wibs "$(printf '%s\n' "${wibs[@]}" | jq -R . | jq -s .)" \
     '.wibmod.wibserver |= map(select(.name | sub("^wib";"") as $n | ($wibs | index($n)))) ' \
     ${base_config_dir}/iceberg_wib.json > ${generated_config_dir}/wib_conf.json
+}
+
+disable_fembs() {
+    # As of Oct. 2025, the third FEMB of WIB 105 and the first FEMB of WIB 106 are disabled.
+    sed -i '/femb[2]/,/enabled/{s/true/false/}' ${generated_config_dir}/iceberg_wib_conf/data/wib105_conf.json
+    sed -i '/femb[0]/,/enabled/{s/true/false/}' ${generated_config_dir}/iceberg_wib_conf/data/wib106_conf.json
 }
 
 # Execute configuration based on selected option
@@ -214,6 +248,8 @@ fi
 fddaqconf_gen     -f -c "${daq_json}"                            -m "${dromap}" "${generated_config_dir}/iceberg_daq_conf"
 hermesmodules_gen -f -c "${base_config_dir}/iceberg_hermes.json" -m "${dromap}" "${generated_config_dir}/iceberg_hermes_conf"
 wibconf_gen       -f -c "${generated_config_dir}/wib_conf.json"                 "${generated_config_dir}/iceberg_wib_conf" #>> $HERE/../logs/iceberg_wib_conf.log
+
+disable_fembs
 
 sed -i 's/monkafka.cern.ch:30092/iceberg01.fnal.gov:30092/g' "${generated_config_dir}/iceberg_daq_conf/boot.json"
 sed -i 's/monkafka.cern.ch:30092/iceberg01.fnal.gov:30092/g' "${generated_config_dir}/iceberg_hermes_conf/boot.json"
