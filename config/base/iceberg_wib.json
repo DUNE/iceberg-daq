@@ -3,6 +3,14 @@
     "host_wib": "iceberg03",
     "wibserver": [
       {
+        "name": "wib101",
+        "address": "tcp://192.168.121.20:1234"
+      },
+      {
+        "name": "wib102",
+        "address": "tcp://192.168.121.21:1234"
+      },
+      {
         "name": "wib103",
         "address": "tcp://192.168.121.22:1234"
       },
@@ -13,6 +21,10 @@
       {
         "name": "wib105",
         "address": "tcp://192.168.121.24:1234"
+      },
+      {
+        "name": "wib106",
+        "address": "tcp://192.168.121.25:1234"
       }
     ],
     "protowib": [],

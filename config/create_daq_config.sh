@@ -82,10 +82,17 @@ if [[ -z "$config_name" ]]; then
     echo "ERROR: --name is required"
     exit 1
 fi
+
 generated_config_dir="${generated_config_root}"/"${config_name}"
 if [[ -d "${generated_config_dir}" ]]; then
-    echo "ERROR: A config area named $config_name already exists in $generated_config_dir"
-    exit 1
+    if [[ "$clean_mode" == "true" ]]; then
+        echo "WARNING: Removing ${generated_config_dir} since '--clean' was supplied."
+        rm -rf ${generated_config_dir}
+    else
+        echo "ERROR: A config area named '$config_name' already exists in $generated_config_dir" >&2
+        echo "       If you want to remove this directory, use '--clean'." >&2
+        exit 1
+    fi
 fi
 mkdir -p ${generated_config_dir}
 
@@ -162,6 +169,13 @@ generate_top_config() {
     sed -i "s|XPATHX|${generated_config_dir}|g" "${generated_top_config}"
 }
 
+generate_wib_config() {
+    # From the provided wib list, filter the template config for only the wibs we need
+    jq --argjson wibs "$(printf '%s\n' "${wibs[@]}" | jq -R . | jq -s .)" \
+    '.wibmod.wibserver |= map(select(.name | sub("^wib";"") as $n | ($wibs | index($n)))) ' \
+    ${base_config_dir}/iceberg_wib.json > ${generated_config_dir}/wib_conf.json
+}
+
 # Execute configuration based on selected option
 daq_json=""
 base_daq_config="${base_config_dir}/iceberg_daq_eth.json"
@@ -188,7 +202,8 @@ case "$data_source" in
         ;;
 esac
 
-generate_top_config || exit 234
+generate_top_config
+generate_wib_config
 
 # Common operations for all configurations
 if [ -z "$daq_json" ]; then
@@ -196,10 +211,9 @@ if [ -z "$daq_json" ]; then
     exit 3
 fi
 
-#CONF_DIR=$(cd "${HERE}/../configs/${config_name}" && pwd)
-fddaqconf_gen     -f -c "${daq_json}" -m "${dromap}" "${generated_config_dir}/iceberg_daq_conf"
+fddaqconf_gen     -f -c "${daq_json}"                            -m "${dromap}" "${generated_config_dir}/iceberg_daq_conf"
 hermesmodules_gen -f -c "${base_config_dir}/iceberg_hermes.json" -m "${dromap}" "${generated_config_dir}/iceberg_hermes_conf"
-wibconf_gen       -f -c "${base_config_dir}/iceberg_wib.json"        ${generated_config_dir}/iceberg_wib_conf #>> $HERE/../logs/iceberg_wib_conf.log
+wibconf_gen       -f -c "${generated_config_dir}/wib_conf.json"                 "${generated_config_dir}/iceberg_wib_conf" #>> $HERE/../logs/iceberg_wib_conf.log
 
 sed -i 's/monkafka.cern.ch:30092/iceberg01.fnal.gov:30092/g' "${generated_config_dir}/iceberg_daq_conf/boot.json"
 sed -i 's/monkafka.cern.ch:30092/iceberg01.fnal.gov:30092/g' "${generated_config_dir}/iceberg_hermes_conf/boot.json"
