@@ -1,6 +1,0 @@
-{
-    "apparatus_id": "iceberg",
-    "wib": "confs/iceberg_wib_conf",
-    "hermes": "confs/iceberg_hermes_conf",
-    "daq": "confs/iceberg_daq_conf"
-}
