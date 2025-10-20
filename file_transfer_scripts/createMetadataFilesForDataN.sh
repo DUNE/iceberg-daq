@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Kurt Biery, October 2021 - April 2024
+# Updated by Andrew Mogan, Oct 2025
 
 set -eo pipefail
 
@@ -25,7 +26,6 @@ Example:
   $prog 01
 
 EOF
-  exit 1
 }
 
 if [[ $# -eq 0 ]]; then
@@ -37,7 +37,7 @@ case "${1:-}" in
 	*) echo "Invalid argument: $1"; usage; exit 1 ;;
 esac
 
-if [[ -n $DBT_AREA_ROOT ]]; then
+if [[ -n "$DBT_AREA_ROOT" ]]; then
 	echo "ERROR: This script needs to be run in a fresh environment without DUNE DAQ setup. Exiting..."
 	exit 1
 fi
@@ -50,7 +50,7 @@ dataDirs="/data${data_disk_number}/amoganMetadataTests"  # may be a space-separa
 echo "Data dirs: $dataDirs"
 minDataFileAgeMinutes=0
 maxDataFileAgeMinutes=14400
-filenamePrefixList=( "np04hd_raw" "np04hd_tp" "np02vd_raw" "np02vd_tp" "np04hdcoldbox_raw" "np04hdcoldbox_tp" "np02vdcoldbox_raw" "np02vdcoldbox_tp" "iceberghd_raw" "iceberghd_tp")
+filenamePrefixList=( "iceberghd_raw" "iceberghd_tp")
 duneDaqVersion="fddaq-v4.4.8-a9"
 
 lockFileDir="/tmp"
@@ -89,8 +89,6 @@ cd $lockFileDir
 # lock file from causing problems, we only look for lock files that
 # are relatively newer than the "stale lock file timeout".
 existingLockFile=$(find "${lockFileDir}" -name "${lockFileName}" -mmin -"${staleLockFileTimeoutMinutes}" -print 2>/dev/null) || true
-echo "Existing lock file? $existingLockFile"
-echo 123
 if [[ "${existingLockFile}" != "" ]]; then
     logMessage "Found lock file (${lockFileDir}/${lockFileName}); exiting early to prevent duplicate jobs."
     exit 1
@@ -112,19 +110,7 @@ while [[ "${found_one_or_more_files}" != "" ]] && [[ "$errors_were_encountered" 
     for filenamePrefix in ${filenamePrefixList[@]}; do
 
 	dataFileNamePattern="${filenamePrefix}_run??????_*.hdf5"
-	if [[ "$filenamePrefix" == "np04hd_raw" ]] || [[ "$filenamePrefix" == "np04hd_tp" ]]; then
-            offlineRunTypeReallyOpEnv="hd-protodune"
-	elif [[ "$filenamePrefix" == "np02vd_raw" ]] || [[ "$filenamePrefix" == "np02vd_tp" ]]; then
-            offlineRunTypeReallyOpEnv="vd-protodune"
-	elif [[ "$filenamePrefix" == "np04hdcoldbox_raw" ]] || [[ "$filenamePrefix" == "np04hdcoldbox_tp" ]]; then
-            offlineRunTypeReallyOpEnv="hd-coldbox"
-	elif [[ "$filenamePrefix" == "np02vdcoldbox_raw" ]] || [[ "$filenamePrefix" == "np02vdcoldbox_tp" ]]; then
-            offlineRunTypeReallyOpEnv="vd-coldbox"
-	elif [[ "$filenamePrefix" == "iceberghd_raw" ]] || [[ "$filenamePrefix" == "iceberghd_tp" ]]; then
-            offlineRunTypeReallyOpEnv="hd-iceberg"
-	else
-            offlineRunTypeReallyOpEnv=${filenamePrefix}
-	fi
+    offlineRunTypeReallyOpEnv="hd-iceberg"
 
 	if [[ $debugLevel -ge 1 ]]; then
             logMessage "Searching for filenames like \"${dataFileNamePattern}\" in \"${dataDirs}\"."
