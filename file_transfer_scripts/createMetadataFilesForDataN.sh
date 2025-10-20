@@ -47,7 +47,6 @@ data_disk_number=$1
 # assign parameter values
 #dataDirs="/data${data_disk_number} /ssddata${data_disk_number} /data${data_disk_number}/transfer_test /data${data_disk_number}/kurtMetadataTests"  # may be a space-separate list
 dataDirs="/data${data_disk_number}/amoganMetadataTests"  # may be a space-separate list
-echo "Data dirs: $dataDirs"
 minDataFileAgeMinutes=0
 maxDataFileAgeMinutes=14400
 filenamePrefixList=( "iceberghd_raw" "iceberghd_tp")
@@ -56,6 +55,9 @@ duneDaqVersion="fddaq-v4.4.8-a9"
 lockFileDir="/tmp"
 lockFileName=".mdFileCronjob_data${data_disk_number}.lock"
 staleLockFileTimeoutMinutes=7
+
+exec 200>$lockFileDir/$lockFileName
+flock -n 200 || { echo "Another instance is already running"; exit 1; }
 
 #setupScriptPath="/home/dunecet/file_transfer_metadata_scripts/setupDuneDAQ"
 ourHDF5DumpScript="print_values_for_file_transfer_metadata.py"
@@ -82,22 +84,6 @@ function logMessage() {
 
 # initialization
 logMessage "Starting $0 ${versionOfThisScript} for ${dataDirs}."
-cd $lockFileDir
-
-# check if there is an instance of this script already running,
-# as evidenced by the presence of a lock file.  To prevent a stale
-# lock file from causing problems, we only look for lock files that
-# are relatively newer than the "stale lock file timeout".
-existingLockFile=$(find "${lockFileDir}" -name "${lockFileName}" -mmin -"${staleLockFileTimeoutMinutes}" -print 2>/dev/null) || true
-if [[ "${existingLockFile}" != "" ]]; then
-    logMessage "Found lock file (${lockFileDir}/${lockFileName}); exiting early to prevent duplicate jobs."
-    exit 1
-fi
-existingLockFile=`ls -alF ${lockFileDir}/${lockFileName} 2>/dev/null` || true
-if [[ "${existingLockFile}" != "" ]]; then
-    logMessage "Ignoring stale lock file (${existingLockFile})."
-fi
-touch ${lockFileDir}/${lockFileName}
 
 dunedaqSetupAttempted="no"
 found_one_or_more_files="yes"
@@ -120,9 +106,6 @@ while [[ "${found_one_or_more_files}" != "" ]] && [[ "$errors_were_encountered" 
 	# loop over all of the files that are found in the requested data directories
 	found_file_count=0
 	for volatileFileName in $(find "${dataDirs}" -user dunecet -maxdepth 1 -name "${dataFileNamePattern}" -type f -mmin +${minDataFileAgeMinutes} -mmin -${maxDataFileAgeMinutes} -print 2>/dev/null | sort -r); do
-
-	    # we assume that we need a periodic touch of the lock file
-	    touch ${lockFileDir}/${lockFileName}
 
 	    # determine the base filename for the current raw data file
 	    baseFileName=`basename $volatileFileName`
@@ -148,7 +131,6 @@ while [[ "${found_one_or_more_files}" != "" ]] && [[ "$errors_were_encountered" 
 		    hdf5DumpFullPath=`eval which ${ourHDF5DumpScript} 2>/dev/null`
 		    if [[ "$hdf5DumpFullPath" == "" ]]; then
 				logMessage "ERROR: The ${ourHDF5DumpScript} script was not found!"
-				rm -f ${lockFileDir}/${lockFileName}
 				exit 3
 		    fi
 		    dunedaqSetupAttempted="yes"
@@ -261,5 +243,4 @@ while [[ "${found_one_or_more_files}" != "" ]] && [[ "$errors_were_encountered" 
 done # loop until there are no files to be processed
 
 # cleanup
-rm -f ${lockFileDir}/${lockFileName}
 logMessage "Done with $0 for ${dataDirs}."
