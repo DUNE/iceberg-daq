@@ -15,15 +15,15 @@ Generate configurations for Iceberg DAQ runs.
 
 Required arguments:
   --wibs
-        List of three-digit WIB identifier numbers.
-        Allowed individual values are 102, 105, and 106. Use 'all' to configure all WIBs.
+        List of three-digit WIB identifier numbers, or 'all' to configure all WIBs (default behavior).
+        Allowed individual values are 102, 105, and 106.
   --source
         Source of data.
         Allowed values are 'cosmic' and 'pulser'. 'wibpusler' and 'pulsechannel' are not currently enabled.
   --name
         Name of the generated configuration.
-        A directory with this name will be created under ${generated_config_root}. The config name
-        is also used as input to the nanorc_run script.
+        A directory with this name will be created under ${generated_config_root}.
+        The config name is also used as input to the nanorc_run script.
 
 Optional arguments:
   --clean
@@ -41,7 +41,7 @@ if [[ $# -eq 0 ]]; then
     exit 1
 fi
 
-wibs=()
+wibs=( "all" )
 data_source=""
 config_name=""
 clean_mode="false"
@@ -56,6 +56,7 @@ while [[ $# -gt 0 ]]; do
                 usage 
                 exit 1
             fi
+            wibs=()
             while [[ $# -gt 0 && $1 != -* ]]; do
                 wibs+=("$1")
                 shift
