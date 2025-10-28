@@ -1,6 +1,7 @@
 #!/bin/bash
 
 HERE=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
+TOP=$(cd "${HERE}/.." && pwd)
 generated_config_root=$(cd "${HERE}/../config/generated/" && pwd)
 generated_config_dir=""
 
@@ -9,16 +10,20 @@ usage() {
     cat << EOF
 Usage: $prog [OPTIONS]
 
-Configure and run nanorc for Iceberg.
+Run ICEBERG DAQ using an existing configuration.
 
-Options:
-    -t <seconds>          Run duration in seconds
-                          [default: 30]
-    --confdir <path>      Directory containing a file named 'top_iceberg.json' for run configuration
-                          [default: current working directory]
+Required arguments:
+    --config <name>     Configuration name. Must match a directory name in 
+                        ${generated_config_root}
+Optional arguments:
+    --time <seconds>    Run duration in seconds [default: 30]
+    --mode <mode>       Run mode ('run' or 'hermes') [default: run]
+
+To generate a configuration, use 
+    ${TOP}/config/create_daq_config.sh
 
 Example:
-    ./nanorc_run.sh -t 60 --confdir path/to/cosmic_config
+    ./${prog} --time 60 --config my_config
 EOF
     exit 1
 }
@@ -66,7 +71,7 @@ while [[ $# -gt 0 ]]; do
             generated_config_dir="$generated_config_root/$config"
             shift 2
             ;;
-        -t)
+        -t|--time)
             if [[ -z "$2" || "$2" == -* ]]; then
                 echo "ERROR: -t requires a duration (in seconds)." >&2
                 exit 1
