@@ -89,7 +89,7 @@ done
 set_run_number() {
     case "$mode" in
         run|confdir)
-            run_number=16000
+            run_number=16068 # Latest run number previous to moving to /exp area
             ;;
         hermes)
             run_number=1
@@ -120,14 +120,12 @@ post_run() {
     echo "Moving log files $log_files to logs/log_$run_number"
     mkdir log_$run_number
     mv $log_files log_$run_number
-    #output_data_files=$(printf "iceberghd_raw_run%06d_*_dataflow0_datawriter_0_*.hdf5" $run_number)
-    #test -n "$files" && mv $files info
 }
 
 start=$(date +'%Y-%m-%d %H:%M:%S')   # used in 2 cases, next
 run_number=0
-runconfs_dir="$DBT_AREA_ROOT/runarea/RunConfs"
-iceberg_runarea="${DBT_AREA_ROOT}/runarea"
+iceberg_runarea="${DBT_AREA_ROOT}/run-logs"
+runconfs_dir="$iceberg_runarea/configs"
 [[ -d "$iceberg_runarea" ]] || { echo "ERROR: No run area found in $iceberg_runarea"; exit 8; }
 case "$mode" in
 run)
@@ -142,7 +140,7 @@ run)
     post_run
     ;;
 hermes)
-    runconfs_dir="$DBT_AREA_ROOT/runarea/RunConfs/hermes"
+    runconfs_dir="$runconfs_dir/hermes"
     [[ -d "$runconfs_dir" ]] || { echo "ERROR: RunConf directory $runconfs_dir does not exist." >&2; exit 11; }
     set_run_number
     hermes_config_dir=$generated_config_dir/iceberg_hermes_conf
