@@ -10,9 +10,9 @@ usage() {
   prog=$(basename "$0")
   cat <<EOF
 
-Usage: $prog <data_disk_number>
+Usage: $prog
 
-Scan a data disk (e.g. /data01) for new HDF5 files and generate JSON metadata.
+Scan /nvme/dunecet/dropbox for new HDF5 files and generate JSON metadata.
 
 Arguments:
   data_disk_number   Two-digit disk ID (e.g. 01)
@@ -42,22 +42,19 @@ if [[ -n "$DBT_AREA_ROOT" ]]; then
 	exit 1
 fi
 
-data_disk_number=$1
-
 # assign parameter values
-#dataDirs="/data${data_disk_number} /ssddata${data_disk_number} /data${data_disk_number}/transfer_test /data${data_disk_number}/kurtMetadataTests"  # may be a space-separate list
-dataDirs="/data${data_disk_number}/amoganMetadataTests"  # may be a space-separate list
+#dataDirs="/data${data_disk_number}/amoganMetadataTests"  # may be a space-separate list
+dataDirs="/nvme/dunecet/dropbox"
 minDataFileAgeMinutes=0
-maxDataFileAgeMinutes=14400
+maxDataFileAgeMinutes=172800
 filenamePrefixList=( "iceberghd_raw" "iceberghd_tp")
 duneDaqVersion="fddaq-v4.4.8-a9"
 
 lockFileDir="/tmp"
-lockFileName=".mdFileCronjob_data${data_disk_number}.lock"
-staleLockFileTimeoutMinutes=7
+lockFileName=".mdFileCronjob_dropbox.lock"
 
 exec 200>$lockFileDir/$lockFileName
-flock -n 200 || { echo "Another instance is already running"; exit 1; }
+flock -n 200 || { echo "Another instance of this script is already running; exiting..."; exit 1; }
 
 #setupScriptPath="/home/dunecet/file_transfer_metadata_scripts/setupDuneDAQ"
 ourHDF5DumpScript="print_values_for_file_transfer_metadata.py"
@@ -65,10 +62,11 @@ scratchFile="/tmp/metadata_scratch_$$.out"
 requestedJSONFileOutputDir="."  # an empty or "." value puts JSON files in the same dirs as the ROOT files
 #logPath="/home/dunecet/file_transfer_metadata_scripts/log/createMDFile_data${data_disk_number}.log"
 # TODO: Figure out a more permanent log path
-logPath="/nvme/dunecet/dunedaq/iceberg-v4.4.8/runarea/iceberg-daq/file_transfer_scripts/log/createMDFile_data${data_disk_number}.log"
-extraFieldCommand="python /nvme/dunecet/dunedaq/iceberg-v4.4.8/runarea/iceberg-daq/file_transfer_scripts/insert_extra_fields.py"
+#logPath="/nvme/dunecet/dunedaq/iceberg-v4.4.8/runarea/iceberg-daq/file_transfer_scripts/log/createMDFile_data${data_disk_number}.log"
+logPath="/nvme/dunecet/dunedaq/data/metadata_logs/createMDFile_dropbox_$(date +"%Y%m%d%H%M").log"
+extraFieldCommand="python /exp/pdune/daq/dunecet/fddaq-v4.4.8-iceberg/iceberg-daq/file_transfer_scripts/insert_extra_fields.py"
 debugLevel=2  # only zero, one, and two are useful, at the moment; two is for performance tracing
-versionOfThisScript="v3.1.0"
+versionOfThisScript="v3.2.0"
 
 # define a function to log messages
 function logMessage() {
