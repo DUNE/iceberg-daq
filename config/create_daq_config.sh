@@ -169,13 +169,13 @@ configure_pulser_json() {
     generated_daq_config="${generated_config_dir}/iceberg_daq_eth_pulser.json"
     cp -pf "${base_daq_config}" "${generated_daq_config}"
     echo "Configuring for pulser"
-    sed -i '
-        /"signal"/s/[0-9][0-9]*/16777216/
-        /tc_type_name/s/k[a-zA-Z]*/kDTSPulser/
-        /hsi_re_mask/s/[0-9][0-9]*/16777216/
-        /offline_data_stream/s/:.*/: "calibration",/
-        /hsi_source/s/:.*/: 0,/
-    ' "${generated_daq_config}"
+    #sed -i '
+    #    /"signal"/s/[0-9][0-9]*/16777216/
+    #    /tc_type_name/s/k[a-zA-Z]*/kDTSPulser/
+    #    /hsi_re_mask/s/[0-9][0-9]*/16777216/
+    #    /offline_data_stream/s/:.*/: "calibration",/
+    #    /hsi_source/s/:.*/: 0,/
+    #' "${generated_daq_config}"
     daq_json="${generated_daq_config}"
 }
 
@@ -215,16 +215,18 @@ disable_fembs() {
     fi
 }
 
-# Execute configuration based on selected option
+# Generate configuration area based on selected option
 daq_json=""
 base_daq_config="${base_config_dir}/iceberg_daq_eth.json"
 generated_top_config=""
 generated_daq_config=""
 case "$data_source" in
     cosmic)
+        base_daq_config="${base_config_dir}/iceberg_daq_cosmic.json"
         configure_cosmic_json
         ;;
     pulser)
+        base_daq_config="${base_config_dir}/iceberg_daq_pulser.json"
         configure_pulser_json
         ;;
     wibpulser)
@@ -260,7 +262,7 @@ sed -i 's/monkafka.cern.ch:30092/iceberg01.fnal.gov:30092/g' "${generated_config
 sed -i 's/monkafka.cern.ch:30092/iceberg01.fnal.gov:30092/g' "${generated_config_dir}/iceberg_hermes_conf/boot.json"
 sed -i '
     /digits_for_file_index/s/.,/1,/
-    /overall_prefix/s/iceberghd/iceberghd_raw/
+    /overall_prefix/s/iceberg/iceberg_raw/
 ' "${generated_config_dir}/iceberg_daq_conf/data/dataflow0_conf.json"
 sed -i 's/PD2HDChannelMap/ICEBERGChannelMap/' \
 "${generated_config_dir}/iceberg_daq_conf/data/trigger_conf.json" \

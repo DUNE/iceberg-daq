@@ -83,16 +83,16 @@
     },
     "detector": {
         "clock_speed_hz": 62500000,
-        "offline_data_stream": "calibration",
+        "offline_data_stream": "cosmics",
         "op_env": "iceberg",
         "tpc_channel_map": "PD2HDChannelMap"
     },
     "hsi": {
-        "control_hsi_hw": false,
+        "control_hsi_hw": true,
         "control_hsi_hw_io": false,
         "enable_hardware_state_recovery": true,
         "enabled_hsi_signals": 1,
-        "fake_hsi_to_ctb": true,
+        "fake_hsi_to_ctb": false,
         "host_fake_hsi": "iceberg01",
         "host_timing_hsi": "iceberg01",
         "hsi_device_id": 0,
@@ -102,14 +102,14 @@
         "hsi_fe_mask": 0,
         "hsi_hw_connections_file": "${TIMING_SHARE}/config/etc/connections.xml",
         "hsi_inv_mask": 0,
-        "hsi_re_mask": 16777216,
+        "hsi_re_mask": 32,
         "hsi_readout_period": 1000,
         "hsi_signal_emulation_mode": 0,
         "hsi_source": 0,
         "mean_hsi_signal_multiplicity": 1,
         "random_trigger_rate_hz": 1.0,
-        "use_fake_hsi": true,
-        "use_timing_hsi": false
+        "use_fake_hsi": false,
+        "use_timing_hsi": true
     },
     "readout": {
         "data_files": [],
@@ -313,8 +313,8 @@
         "trigger_window_before_ticks": 1000,
         "ttcm_input_map": [
             {
-                "signal": 16777216,
-                "tc_type_name": "kDTSPulser",
+                "signal": 32,
+                "tc_type_name": "kDTSCosmic",
                 "time_after": 200192,
                 "time_before": 64000
             }

@@ -42,7 +42,7 @@ fi
 dataDirs="/nvme/dunecet/dropbox"
 minDataFileAgeMinutes=0
 maxDataFileAgeMinutes=172800
-filenamePrefixList=( "iceberghd_raw" "iceberghd_tp")
+filenamePrefixList=( "iceberg_raw" "iceberg_tp")
 duneDaqVersion="fddaq-v4.4.8-a9"
 
 lockFileDir="/tmp"
@@ -81,7 +81,6 @@ logMessage "Starting $0 ${versionOfThisScript} for ${dataDirs}."
 dunedaqSetupAttempted="no"
 found_one_or_more_files="yes"
 errors_were_encountered=""
-echo "Beginning first while loop"
 while [[ "${found_one_or_more_files}" != "" ]] && [[ "$errors_were_encountered" == "" ]] ; do
     found_one_or_more_files=""
 
@@ -89,7 +88,7 @@ while [[ "${found_one_or_more_files}" != "" ]] && [[ "$errors_were_encountered" 
     for filenamePrefix in ${filenamePrefixList[@]}; do
 
 	dataFileNamePattern="${filenamePrefix}_run??????_*.hdf5"
-    offlineRunTypeReallyOpEnv="hd-iceberg"
+    offlineRunTypeReallyOpEnv="iceberg"
 
 	if [[ $debugLevel -ge 1 ]]; then
             logMessage "Searching for filenames like \"${dataFileNamePattern}\" in \"${dataDirs}\"."
