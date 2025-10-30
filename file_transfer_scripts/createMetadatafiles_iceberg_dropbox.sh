@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Kurt Biery, October 2021 - April 2024
-# Updated by Andrew Mogan, Oct 2025
+# S. Timm october 30 2024 hack to fit it on ice berg
+# Andrew Mogan, Oct 2025: further hacking for iceberg
 
 set -eo pipefail
 
@@ -14,16 +15,10 @@ Usage: $prog
 
 Scan /nvme/dunecet/dropbox for new HDF5 files and generate JSON metadata.
 
-Arguments:
-  data_disk_number   Two-digit disk ID (e.g. 01)
-
 Notes:
   - Must be run in a clean environment (no DAQ setup active)
   - Creates a lockfile to prevent concurrent runs
   - Configurable variables are defined near the top of the script
-
-Example:
-  $prog 01
 
 EOF
 }
