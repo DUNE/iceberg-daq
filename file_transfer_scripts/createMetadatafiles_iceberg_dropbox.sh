@@ -14,6 +14,7 @@ usage() {
 Usage: $prog
 
 Scan /nvme/dunecet/dropbox for new HDF5 files and generate JSON metadata.
+This allows the File Transfer Service (FTS) to pick up the HDF5 files.
 
 Notes:
   - Must be run in a clean environment (no DAQ setup active)
@@ -23,14 +24,9 @@ Notes:
 EOF
 }
 
-if [[ $# -eq 0 ]]; then
-	usage; exit 1
+if [[ "$1" == "-h" || "$1" == "--help" || "$1" == "-?" ]]; then
+	usage
 fi
-case "${1:-}" in
-	-h|--help|-?) usage; exit 0 ;;
-	[0-9][0-9]) data_disk_number="$1" ;;
-	*) echo "Invalid argument: $1"; usage; exit 1 ;;
-esac
 
 if [[ -n "$DBT_AREA_ROOT" ]]; then
 	echo "ERROR: This script needs to be run in a fresh environment without DUNE DAQ setup. Exiting..."
@@ -38,11 +34,10 @@ if [[ -n "$DBT_AREA_ROOT" ]]; then
 fi
 
 # assign parameter values
-#dataDirs="/data${data_disk_number}/amoganMetadataTests"  # may be a space-separate list
 dataDirs="/nvme/dunecet/dropbox"
 minDataFileAgeMinutes=0
 maxDataFileAgeMinutes=172800
-filenamePrefixList=( "iceberg_raw" "iceberg_tp")
+filenamePrefixList=( "iceberghd_raw" "iceberghd_tp" )
 duneDaqVersion="fddaq-v4.4.8-a9"
 
 lockFileDir="/tmp"

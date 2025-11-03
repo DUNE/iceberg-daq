@@ -84,7 +84,7 @@
     "detector": {
         "clock_speed_hz": 62500000,
         "offline_data_stream": "calibration",
-        "op_env": "iceberg",
+        "op_env": "iceberghd",
         "tpc_channel_map": "PD2HDChannelMap"
     },
     "hsi": {

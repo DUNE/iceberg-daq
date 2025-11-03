@@ -262,7 +262,7 @@ sed -i 's/monkafka.cern.ch:30092/iceberg01.fnal.gov:30092/g' "${generated_config
 sed -i 's/monkafka.cern.ch:30092/iceberg01.fnal.gov:30092/g' "${generated_config_dir}/iceberg_hermes_conf/boot.json"
 sed -i '
     /digits_for_file_index/s/.,/1,/
-    /overall_prefix/s/iceberg/iceberg_raw/
+    /overall_prefix/s/iceberghd/iceberghd_raw/
 ' "${generated_config_dir}/iceberg_daq_conf/data/dataflow0_conf.json"
 sed -i 's/PD2HDChannelMap/ICEBERGChannelMap/' \
 "${generated_config_dir}/iceberg_daq_conf/data/trigger_conf.json" \
