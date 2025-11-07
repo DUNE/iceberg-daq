@@ -65,7 +65,7 @@ for entry in "${WIBS[@]}"; do
     read -r id ip f0 f1 f2 f3 <<<"$entry"
     if ! ping -c 1 -W 5 "$ip" &>/dev/null; then
         echo "WARNING: Could not ping $ip"
-        could_not_power+=("WARNING: WIB $id (IP $ip) is not pingable and its FEMBs are not powered.\n Make sure it's powered on and connected to the network.")
+        could_not_power+=("WARNING: WIB $id (IP $ip) is not pingable and its FEMBs are not powered.\n Make sure it's powered on and connected to the network.\n")
         continue
     fi
     python3 "$WIB_POWER_SCRIPT" -c -w "$ip" "$f0" "$f1" "$f2" "$f3"
