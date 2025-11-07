@@ -28,13 +28,16 @@ EOF
     exit 1
 }
 
+set -euo pipefail
+
 if [[ $# == 0 ]]; then
     usage
 fi
 
-set -euo pipefail
-
-[[ -n "$DBT_AREA_ROOT" ]] || { echo "ERROR: The DUNE DAQ environment is not setup."; exit 1; }
+if ! declare -p DBT_AREA_ROOT >&/dev/null; then
+    echo "ERROR: The DUNE DAQ environment is not setup. Exiting..." >&2
+    exit 1
+fi
 
 duration=30
 mode=run
