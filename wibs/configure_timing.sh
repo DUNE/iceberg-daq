@@ -11,6 +11,9 @@ If no --wib argument is provided, this script will attempt to configure the timi
 EOF
 }
 
+HERE=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
+source $HERE/../logging.sh
+
 check_timing_output() {
     if [[ ! -f timing_output.txt ]]; then
         echo "ERROR: No timing output file found" >&2
@@ -39,7 +42,8 @@ check_timing_output() {
 
 # Determine if this script is running in the correct environment
 if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
-    echo "ERROR: This script is intended to be executed directly, not sourced." >&2
+    #echo "ERROR: This script is intended to be executed directly, not sourced." >&2
+    error "This script is intended to be executed directly, not sourced."
     usage
     return 1
 fi
