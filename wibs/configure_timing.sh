@@ -114,33 +114,37 @@ for id in "${!WIBS[@]}"; do
     else
         echo -e "\n===== Resetting timing for WIB $id ====="
     fi
+
     if ! ping -c 1 -W 5 $ip &>/dev/null; then
-        echo "WARNING: Could not ping $ip"
-        echo "ERROR: WIB $id (IP $ip) is not pingable. Make sure it's powered on and connected to the network."
-        exit 3
+        echo "ERROR: WIB $id (IP $ip) is not pingable. Make sure it's powered on and connected to the network." >&2
+        continue
     fi
 
     wib_timing_is_ok="false"
-    tries=0
     python3 "$WIB_CLIENT_SCRIPT" -w "$ip" "timing_$action" | tee timing_output.txt
 
     if check_timing_output; then
         wib_timing_is_ok="true"
     fi
+    tries=1
+    rm -f timing_output.txt
 
+    # A timing reset may take an additional 1-2 attempts to be successful attempts for success
     while [[ "$action" == "reset" && "$wib_timing_is_ok" == "false" && $tries -lt $MAX_TRIES ]]; do
-        echo "YOU SHOULD NOT SEE THIS"
         ((++tries))
+        echo "Attempt number $tries of timing reset..."
+        python3 "$WIB_CLIENT_SCRIPT" -w "$ip" "timing_$action" | tee timing_output.txt
         if check_timing_output; then
             wib_timing_is_ok="true"
         else
             echo "Timing is not OK. Retrying ($tries/$MAX_TRIES)..."
             sleep 2
         fi
+        rm -f timing_output.txt
     done
 
     if [[ "$wib_timing_is_ok" == "false" ]]; then
-        echo "ERROR: Timing check failed for WIB $id after $MAX_TRIES tries." >&2
+        echo "ERROR: Timing reset failed for WIB $id after $MAX_TRIES tries." >&2
         exit 5
     fi
 
