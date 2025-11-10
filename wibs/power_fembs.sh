@@ -47,8 +47,8 @@ declare -a WIBS=()
 if [[ "$power" == "on" ]]; then
     WIBS=(
         "102 192.168.121.21 on on on on"
-        "105 192.168.121.24 on on off on"
-        "106 192.168.121.25 off on on on"
+        "105 192.168.121.24 on on on on"
+        "106 192.168.121.25 off off on on"
     )
 elif [[ "$power" == "off" ]]; then
     WIBS=(

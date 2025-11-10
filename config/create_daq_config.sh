@@ -206,12 +206,10 @@ generate_wib_config() {
 }
 
 disable_fembs() {
-    # As of Oct. 2025, the third FEMB of WIB 105 and the first FEMB of WIB 106 are disabled.
-    if [[ -f "$generated_config_dir/iceberg_wib_conf/data/wib105_conf.json" ]]; then
-        sed -i '/femb[2]/,/enabled/{s/true/false/}' ${generated_config_dir}/iceberg_wib_conf/data/wib105_conf.json
-    fi
+    # As of Nov. 2025, the first two FEMBs of WIB 106 are disabled.
     if [[ -f "$generated_config_dir/iceberg_wib_conf/data/wib106_conf.json" ]]; then
         sed -i '/femb[0]/,/enabled/{s/true/false/}' ${generated_config_dir}/iceberg_wib_conf/data/wib106_conf.json
+        sed -i '/femb[1]/,/enabled/{s/true/false/}' ${generated_config_dir}/iceberg_wib_conf/data/wib106_conf.json
     fi
 }
 
