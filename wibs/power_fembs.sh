@@ -9,15 +9,18 @@ Usage: $prog [on|off]
 EOF
 }
 
+HERE=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
+: "${LOG_PREFIX:=$(basename "${BASH_SOURCE[0]}")}"
+source $HERE/../logging.sh
+
 if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
-    echo "ERROR: This script is intended to be executed directly, not sourced." >&2
-    usage
+    error "This script is intended to be executed directly, not sourced."
     return 1
 fi
 
 if [[ -n "$DBT_AREA_ROOT" ]]; then
-    echo "ERROR: This script will not work inside an active DUNE DAQ environment." >&2
-    echo "       Open a fresh terminal and try again." >&2
+    error "This script will not work inside an active DUNE DAQ environment."
+    error "Open a fresh terminal and try again."
     exit 2
 fi
 
@@ -35,10 +38,12 @@ while [[ $# -gt 0 ]]; do
             ;;
         -h|--help|-?) 
             usage
+            exit 1
             ;;
         *) 
-            echo "ERROR: Unknown argument: $1"; 
+            error "Unknown argument: $1"; 
             usage
+            exit 1
             ;;
     esac
 done
@@ -64,13 +69,16 @@ could_not_power=("")
 for entry in "${WIBS[@]}"; do
     read -r id ip f0 f1 f2 f3 <<<"$entry"
     if ! ping -c 1 -W 5 "$ip" &>/dev/null; then
-        echo "WARNING: Could not ping $ip"
-        could_not_power+=("WARNING: WIB $id (IP $ip) is not pingable and its FEMBs are not powered.\n Make sure it's powered on and connected to the network.\n")
+        info "In ping loop"
+        warn "Could not ping $ip"
+        could_not_power+=("WIB $id (IP $ip) is not pingable and its FEMBs are not powered.\n Make sure it's powered on and connected to the network.\n")
         continue
     fi
     python3 "$WIB_POWER_SCRIPT" -c -w "$ip" "$f0" "$f1" "$f2" "$f3"
 done
 
-if [[ -n "$could_not_power[@]" ]]; then
-    echo -e "${could_not_power[@]}"
+if [[ -n "$could_not_power" ]]; then
+    warn "${could_not_power[@]}"
+else
+    info "Success"
 fi

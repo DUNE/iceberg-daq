@@ -5,13 +5,16 @@ set -euo pipefail
 HERE=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
 base_config_dir=$(cd "${HERE}/base/" && pwd)
 generated_config_root=$(cd "${HERE}/generated/" && pwd)
+: "${LOG_PREFIX:=$(basename "${BASH_SOURCE[0]}")}"
+source $HERE/../logging.sh
 
 usage() {
 local prog=$(basename "$0")
     cat << EOF
 Usage: $prog --wibs <'all'|102|105|106> --source <cosmic|pulser|wibpulser|pulsechannel> --name <config_name> [--clean]"
 
-Generate configurations for Iceberg DAQ runs.
+Generate configurations for Iceberg DAQ runs. Note that you must have an
+active DUNE DAQ environment setup for this script to work.
 
 Required arguments:
   --wibs
@@ -41,6 +44,12 @@ if [[ $# -eq 0 ]]; then
     exit 1
 fi
 
+if ! declare -p DBT_AREA_ROOT; then
+    error "This script requires an active DUNE DAQ environment."
+    error "Navigate to the local DUNE DAQ build area and run 'source env.sh'"
+    exit 2
+fi
+
 wibs=( "all" )
 data_source=""
 config_name=""
@@ -52,7 +61,7 @@ while [[ $# -gt 0 ]]; do
         --wibs)
             shift
             if [[ $# -eq 0 || $1 == -* ]]; then
-                echo "ERROR: No WIB numbers provided"
+                error "No WIB numbers provided"
                 usage 
                 exit 1
             fi
@@ -64,11 +73,11 @@ while [[ $# -gt 0 ]]; do
             ;;
         --source)
             if [[ $# -eq 1 || "$2" == -* ]]; then
-                echo "ERROR: --source requires an argument." >&2
+                error "--source requires an argument."
                 exit 1
             fi
             if [[ "$2" != "pulser" && "$2" != "cosmic" ]]; then
-                echo "ERROR: Invalid --source argument." >&2
+                error "Invalid --source argument."
                 exit 1
             fi
             data_source="$2"
@@ -76,7 +85,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         --name)
             if [[ $# -eq 1 || "$2" == -* ]]; then
-                echo "ERROR: --name requires an argument" >&2
+                error "--name requires an argument"
                 exit 1
             fi
             config_name="$2"
@@ -87,7 +96,7 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         *)
-            echo "ERROR Unknown argument: $1"
+            error "Unknown argument: $1"
             usage
             exit 1
             ;;
@@ -96,12 +105,12 @@ done
 
 # Validate arguments
 if [[ -z "$data_source" ]]; then
-    echo "ERROR: --source is required"
+    error "--source is required"
     exit 1
 fi
 
 if [[ -z "$config_name" ]]; then
-    echo "ERROR: --name is required"
+    error "--name is required"
     exit 1
 fi
 
@@ -112,7 +121,7 @@ fi
 invalid_wib="false"
 for wib in "${wibs[@]}"; do
     if [[ "$wib" != "102" && "$wib" != "105" && "$wib" != "106" ]]; then
-        echo "ERROR: Invalid --wibs argument: $wib". >&2
+        error "Invalid --wibs argument: $wib".
         invalid_wib="true"
     fi
 done
@@ -120,8 +129,8 @@ done
 
 num_unique_elements=$(echo "${wibs[@]}" | tr " " "\n" | uniq -c | wc -l)
 if [[ $num_unique_elements != ${#wibs[@]} ]]; then
-    echo "ERROR: Each provided wib number must be unique"
-    echo "${wibs[@]}"
+    error "Each provided WIB number must be unique"
+    error "Provided WIBs: ${wibs[@]}"
     exit 5
 fi
 
@@ -129,11 +138,11 @@ fi
 generated_config_dir="${generated_config_root}"/"${config_name}"
 if [[ -d "${generated_config_dir}" ]]; then
     if [[ "$clean_mode" == "true" ]]; then
-        echo "WARNING: Removing ${generated_config_dir} since '--clean' was supplied."
+        warn "Removing ${generated_config_dir} since '--clean' was supplied."
         rm -rf ${generated_config_dir}
     else
-        echo "ERROR: A config area named '$config_name' already exists in $generated_config_dir" >&2
-        echo "       If you want to remove this directory, use '--clean'." >&2
+        error "A config area named '$config_name' already exists in $generated_config_dir"
+        error "If you want to remove this directory, use '--clean'."
         exit 1
     fi
 fi
@@ -144,7 +153,7 @@ base_dromap_files=()
 for wib in ${wibs[@]}; do 
     filename="${base_config_dir}/dromaps/iceberg_dromap_wib_${wib}.json"
     if [[ ! -f "${filename}" ]]; then
-        echo "ERROR: No detector readout map file exists for WIB $wib in $base_config_dir/dromaps"
+        error "No detector readout map file exists for WIB $wib in $base_config_dir/dromaps"
         exit 4
     fi
     dromap_files+=("${filename}")
@@ -168,7 +177,7 @@ configure_cosmic_json() {
 configure_pulser_json() {
     generated_daq_config="${generated_config_dir}/iceberg_daq_eth_pulser.json"
     cp -pf "${base_daq_config}" "${generated_daq_config}"
-    echo "Configuring for pulser"
+    info "Configuring for pulser"
     #sed -i '
     #    /"signal"/s/[0-9][0-9]*/16777216/
     #    /tc_type_name/s/k[a-zA-Z]*/kDTSPulser/
@@ -235,7 +244,7 @@ case "$data_source" in
         configure_pulser_json
         ;;
     *)
-        echo "ERROR: Unknown source: $data_source"
+        error "Unknown source: $data_source"
         usage
         exit 1
         ;;
@@ -246,7 +255,7 @@ generate_wib_config
 
 # Common operations for all configurations
 if [ -z "$daq_json" ]; then
-    echo "ERROR: Invalid daq config: $daq_json"
+    error "Invalid daq config: $daq_json"
     exit 3
 fi
 

@@ -4,6 +4,8 @@ HERE=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
 TOP=$(cd "${HERE}/.." && pwd)
 generated_config_root=$(cd "${HERE}/../config/generated/" && pwd)
 generated_config_dir=""
+: "${LOG_PREFIX:=$(basename "${BASH_SOURCE[0]}")}"
+source $HERE/../logging.sh
 
 usage() {
     local prog=$(basename "$0")
@@ -34,9 +36,10 @@ if [[ $# == 0 ]]; then
     usage
 fi
 
-if ! declare -p DBT_AREA_ROOT >&/dev/null; then
-    echo "ERROR: The DUNE DAQ environment is not setup. Exiting..." >&2
-    exit 1
+if ! declare -p DBT_AREA_ROOT; then
+    error "This script requires an active DUNE DAQ environment."
+    error "Navigate to the local DUNE DAQ build area and run 'source env.sh'"
+    exit 2
 fi
 
 duration=30
@@ -48,11 +51,11 @@ while [[ $# -gt 0 ]]; do
             ;;
         --mode)
             if [[ -z "$2" || "$2" == -* ]]; then
-                echo "ERROR: --mode requires an argument." >&2
+                error "--mode requires an argument."
                 exit 1
             fi
             if [[ "$2" != "hermes" && "$2" != "run" && "$2" != confdir ]]; then
-                echo "ERROR: Invalid mode. Mode must be one of 'hermes', 'run', or 'confdir'" >&2
+                error "Invalid mode. Mode must be one of 'hermes', 'run', or 'confdir'"
                 usage
                 exit 1
             fi
@@ -61,12 +64,12 @@ while [[ $# -gt 0 ]]; do
             ;;
         --config)
             if [[ $# -eq 1 || "$2" == -* ]]; then
-                echo "ERROR: --config requires an argument." >&2
+                error "--config requires an argument."
                 exit 1
             fi
             if [[ ! -d "$generated_config_root/$2" ]]; then
-                echo "ERROR: No generated config named $2 exists in $generated_config_root" >&2
-                echo "       If you need to generate a config, use $HERE/../config/create_daq_config.sh" >&2
+                error "No generated config named $2 exists in $generated_config_root"
+                error "If you need to generate a config, use $HERE/../config/create_daq_config.sh"
                 exit 2
             fi
             #mode="confdir"
@@ -76,18 +79,18 @@ while [[ $# -gt 0 ]]; do
             ;;
         -t|--time)
             if [[ -z "$2" || "$2" == -* ]]; then
-                echo "ERROR: -t requires a duration (in seconds)." >&2
+                error "--time requires a duration (in seconds)."
                 exit 1
             fi
             if ! [[ "$2" =~ ^[0-9]+$ ]]; then
-                echo "ERROR: Duration must be a positive integer, got '$2'." >&2
+                error "Duration must be a positive integer, got '$2'."
                 exit 1
             fi
             duration="$2"
             shift 2
             ;;
         *)
-            echo "ERROR: Unknown option: $1"
+            error "Unknown option: $1"
             usage
             exit 1
             ;;
@@ -103,7 +106,7 @@ set_run_number() {
             run_number=1
             ;;
         *)
-            echo "ERROR: Unknown error when getting run number" >&2
+            error "Unknown error when getting run number"
             exit 10
             ;;
     esac
@@ -115,7 +118,7 @@ set_run_number() {
 
 post_run() {
     if [[ ! -d "$runconfs_dir/RunConf_$run_number" ]]; then
-        echo "ERROR: No RunConf directory was created at $runconfs_dir/RunConf_$run_number" >&2 
+        error "No RunConf directory was created at $runconfs_dir/RunConf_$run_number"
         exit 8
     fi
     info_files=$(find . -maxdepth 1 -name info_\* -newermt "$start")
@@ -125,7 +128,7 @@ post_run() {
     fi
     cd $iceberg_runarea/logs
     log_files=$(find . -type f -newermt "$start")
-    echo "Moving log files $log_files to logs/log_$run_number"
+    info "Moving log files $log_files to logs/log_$run_number"
     mkdir log_$run_number
     mv $log_files log_$run_number
 }
@@ -134,13 +137,13 @@ start=$(date +'%Y-%m-%d %H:%M:%S')   # used in 2 cases, next
 run_number=0
 iceberg_runarea="${DBT_AREA_ROOT}/run-logs"
 runconfs_dir="$iceberg_runarea/configs"
-[[ -d "$iceberg_runarea" ]] || { echo "ERROR: No run area found in $iceberg_runarea"; exit 8; }
+[[ -d "$iceberg_runarea" ]] || { error "No run area found in $iceberg_runarea"; exit 8; }
 case "$mode" in
 run)
-    [[ -d "$runconfs_dir" ]] || { echo "ERROR: RunConf directory $runconfs_dir does not exist." >&2; exit 11; }
+    [[ -d "$runconfs_dir" ]] || { error "RunConf directory $runconfs_dir does not exist."; exit 11; }
     set_run_number
-    echo "Attempting to start data taking run $run_number with config $config"
-    echo "Using config in $generated_config_dir/top_iceberg.json:"; grep -v '^[{}]' $generated_config_dir/top_iceberg.json || exit 987
+    info "Attempting to start data taking run $run_number with config $config"
+    info "Using config in $generated_config_dir/top_iceberg.json:"; grep -v '^[{}]' $generated_config_dir/top_iceberg.json || exit 987
     nanorc --log-path $iceberg_runarea/logs --partition-number 3  --cfg-dumpdir $runconfs_dir --logbook-prefix logs/logbook \
 	   $generated_config_dir/top_iceberg.json dunecet-iceberg boot conf start_run $run_number \
 	   wait $duration stop_run scrap terminate
@@ -149,19 +152,19 @@ run)
     ;;
 hermes)
     runconfs_dir="$runconfs_dir/hermes"
-    [[ -d "$runconfs_dir" ]] || { echo "ERROR: RunConf directory $runconfs_dir does not exist." >&2; exit 11; }
+    [[ -d "$runconfs_dir" ]] || { error "RunConf directory $runconfs_dir does not exist."; exit 11; }
     set_run_number
     hermes_config_dir=$generated_config_dir/iceberg_hermes_conf
-    echo "Attempting to start hermes run $run_number"
+    info "Attempting to start hermes run $run_number"
     if [[ ! -d "$hermes_config_dir" ]]; then
-        echo "ERROR: No hermes configuration found in $generated_config_dir" >&2
+        error "No hermes configuration found in $generated_config_dir"
         exit 5
     fi
     nanorc --log-path $iceberg_runarea/logs --partition-number 3 --cfg-dumpdir $runconfs_dir --logbook-prefix logs/logbook \
 	   $hermes_config_dir iceberg-hermes boot start_run $run_number start_shell
     ;;
 *)
-    echo "Invalid mode: $mode"
+    error "Invalid mode: $mode"
     usage
     ;;
 esac

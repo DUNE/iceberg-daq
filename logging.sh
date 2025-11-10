@@ -21,7 +21,7 @@ _log() {
         ERROR) color="$COLOR_ERROR" ;;
     esac
 
-    local formatted_msg="[[${LOG_PREFIX}: ${timestamp}]] [${level}] ${msg}"
+    local formatted_msg="[iceberg-daq | ${LOG_PREFIX} | ${timestamp}] ${level}: ${msg}"
     if [[ "$level" == "INFO" ]]; then
         echo -e "${color}${formatted_msg}${COLOR_RESET}"
     # Warnings and error go to stderr
@@ -31,5 +31,5 @@ _log() {
 }
 
 info()  { _log "INFO" "$@"; }
-warn()  { _log "WARN" "$@"; }
+warn()  { _log "WARNING" "$@"; }
 error() { _log "ERROR" "$@"; }
