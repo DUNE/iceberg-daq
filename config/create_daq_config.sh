@@ -3,10 +3,12 @@
 set -euo pipefail
 
 HERE=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
+TOP=$(cd "${HERE}/.." && pwd)
 base_config_dir=$(cd "${HERE}/base/" && pwd)
 generated_config_root=$(cd "${HERE}/generated/" && pwd)
 : "${LOG_PREFIX:=$(basename "${BASH_SOURCE[0]}")}"
-source $HERE/../logging.sh
+source $TOP/logging.sh
+source $HERE/config_helpers.sh
 
 usage() {
 local prog=$(basename "$0")
@@ -29,9 +31,11 @@ Required arguments:
         The config name is also used as input to the nanorc_run script.
 
 Optional arguments:
+  --list
+        List available configurations.
   --clean
         Remove existing configuration directory before regenerating.
-  -h, --help
+  -h, --help, -?, or no arguments
         Show this message and exit.
 
 Example:
@@ -44,7 +48,7 @@ if [[ $# -eq 0 ]]; then
     exit 1
 fi
 
-if ! declare -p DBT_AREA_ROOT; then
+if ! declare -p DBT_AREA_ROOT >&/dev/null; then
     error "This script requires an active DUNE DAQ environment."
     error "Navigate to the local DUNE DAQ build area and run 'source env.sh'"
     exit 2
@@ -56,8 +60,14 @@ config_name=""
 clean_mode="false"
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        -h|--help)
-            usage;;
+        -h|--help|-?)
+            usage
+            exit 1
+            ;;
+        --list)
+            list_available_configs
+            exit 0
+            ;;
         --wibs)
             shift
             if [[ $# -eq 0 || $1 == -* ]]; then

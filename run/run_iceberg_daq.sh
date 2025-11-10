@@ -1,11 +1,14 @@
 #!/bin/bash
 
+set -euo pipefail
+
 HERE=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
 TOP=$(cd "${HERE}/.." && pwd)
-generated_config_root=$(cd "${HERE}/../config/generated/" && pwd)
+generated_config_root=$(cd "${TOP}/config/generated/" && pwd)
 generated_config_dir=""
 : "${LOG_PREFIX:=$(basename "${BASH_SOURCE[0]}")}"
-source $HERE/../logging.sh
+source $TOP/logging.sh
+source $TOP/config/config_helpers.sh
 
 usage() {
     local prog=$(basename "$0")
@@ -24,13 +27,14 @@ Optional arguments:
 To generate a configuration, use 
     ${TOP}/config/create_daq_config.sh
 
+To list available configurations, run
+    ${TOP}/config/create_daq_config.sh --list
+
 Example:
     ./${prog} --time 60 --config my_config
 EOF
     exit 1
 }
-
-set -euo pipefail
 
 if [[ $# == 0 ]]; then
     usage
@@ -65,11 +69,13 @@ while [[ $# -gt 0 ]]; do
         --config)
             if [[ $# -eq 1 || "$2" == -* ]]; then
                 error "--config requires an argument."
+                list_available_configs
                 exit 1
             fi
             if [[ ! -d "$generated_config_root/$2" ]]; then
                 error "No generated config named $2 exists in $generated_config_root"
-                error "If you need to generate a config, use $HERE/../config/create_daq_config.sh"
+                error "If you need to generate a config, use $TOP/config/create_daq_config.sh"
+                list_available_configs
                 exit 2
             fi
             #mode="confdir"
