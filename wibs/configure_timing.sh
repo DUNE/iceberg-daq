@@ -53,9 +53,6 @@ if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
     return 1
 fi
 
-# The wib_client.py script won't work if the DUNE DAQ environment is setup
-CMD_PREFIX=$([[ -n "$DBT_AREA_ROOT" ]] && echo "env -i" || echo "")
-
 # Parse inputs
 action=""
 wib=""
@@ -107,7 +104,6 @@ fi
 WIB_CLIENT_SCRIPT="/home/dunecet/dunedaq/DUNE_WIB_BNL_GUI/wib_client.py"
 MAX_TRIES=3
 
-# For a timing reset, retry up to $MAX_TRIES times before giving up
 for id in "${!WIBS[@]}"; do
     ip=${WIBS[$id]}
     if [[ "$action" == "status" ]]; then
@@ -122,7 +118,8 @@ for id in "${!WIBS[@]}"; do
     fi
 
     wib_timing_is_ok="false"
-    $CMD_PREFIX python3 "$WIB_CLIENT_SCRIPT" -w "$ip" "timing_$action" | tee timing_output.txt
+    # Use env -i since the power script won't work in a DUNE DAQ environment
+    env -i python3 "$WIB_CLIENT_SCRIPT" -w "$ip" "timing_$action" | tee timing_output.txt
 
     if check_timing_output; then
         wib_timing_is_ok="true"
@@ -133,7 +130,7 @@ for id in "${!WIBS[@]}"; do
     while [[ "$action" == "reset" && "$wib_timing_is_ok" == "false" && $tries -lt $MAX_TRIES ]]; do
         ((++tries))
         info "Attempt number $tries of timing reset..."
-        $CMD_PREFIX python3 "$WIB_CLIENT_SCRIPT" -w "$ip" "timing_$action" | tee timing_output.txt
+        env -i python3 "$WIB_CLIENT_SCRIPT" -w "$ip" "timing_$action" | tee timing_output.txt
         if check_timing_output; then
             wib_timing_is_ok="true"
         else

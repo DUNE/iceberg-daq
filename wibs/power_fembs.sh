@@ -18,9 +18,6 @@ if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
     return 1
 fi
 
-# The wib_power.py script won't work if the DUNE DAQ environment is setup
-CMD_PREFIX=$([[ -n "$DBT_AREA_ROOT" ]] && echo "env -i" || echo "")
-
 if [[ $# == 0 ]]; then
     usage
     exit 1
@@ -71,7 +68,8 @@ for entry in "${WIBS[@]}"; do
         could_not_power+=("WIB $id (IP $ip) is not pingable and its FEMBs are not powered.\n Make sure it's powered on and connected to the network.\n")
         continue
     fi
-    $CMD_PREFIX python3 "$WIB_POWER_SCRIPT" -c -w "$ip" "$f0" "$f1" "$f2" "$f3"
+    # Use env -i since the power script won't work in a DUNE DAQ environment
+    env -i python3 "$WIB_POWER_SCRIPT" -c -w "$ip" "$f0" "$f1" "$f2" "$f3"
 done
 
 if [[ -n "$could_not_power" ]]; then
