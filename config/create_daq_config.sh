@@ -19,9 +19,6 @@ Generate configurations for Iceberg DAQ runs. Note that you must have an
 active DUNE DAQ environment setup for this script to work.
 
 Required arguments:
-  --wibs
-        List of three-digit WIB identifier numbers, or 'all' to configure all WIBs (default behavior).
-        Allowed individual values are 102, 105, and 106.
   --source
         Source of data.
         Allowed values are 'cosmic' and 'pulser'. 'wibpusler' and 'pulsechannel' are not currently enabled.
@@ -31,6 +28,9 @@ Required arguments:
         The config name is also used as input to the nanorc_run script.
 
 Optional arguments:
+  --wibs
+        List of three-digit WIB identifier numbers, or 'all' to configure all WIBs (default behavior).
+        Allowed individual values are 102, 105, and 106.
   --list
         List available configurations.
   --clean
