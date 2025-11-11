@@ -48,17 +48,13 @@ if [[ $# == 0 ]]; then
     exit 1
 fi
 
-# Determine if this script is running in the correct environment
 if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
     error "This script is intended to be executed directly, not sourced."
     return 1
 fi
 
-if [[ -n "$DBT_AREA_ROOT" ]]; then
-    error "This script will not work inside an active DUNE DAQ environment."
-    error "Open a fresh terminal and try again."
-    exit 2
-fi
+# The wib_client.py script won't work if the DUNE DAQ environment is setup
+CMD_PREFIX=$([[ -n "$DBT_AREA_ROOT" ]] && echo "env -i" || echo "")
 
 # Parse inputs
 action=""
@@ -126,19 +122,18 @@ for id in "${!WIBS[@]}"; do
     fi
 
     wib_timing_is_ok="false"
-    python3 "$WIB_CLIENT_SCRIPT" -w "$ip" "timing_$action" | tee timing_output.txt
+    $CMD_PREFIX python3 "$WIB_CLIENT_SCRIPT" -w "$ip" "timing_$action" | tee timing_output.txt
 
     if check_timing_output; then
         wib_timing_is_ok="true"
     fi
     tries=1
-    rm -f timing_output.txt
 
     # A timing reset may take an additional 1-2 attempts to be successful attempts for success
     while [[ "$action" == "reset" && "$wib_timing_is_ok" == "false" && $tries -lt $MAX_TRIES ]]; do
         ((++tries))
         info "Attempt number $tries of timing reset..."
-        python3 "$WIB_CLIENT_SCRIPT" -w "$ip" "timing_$action" | tee timing_output.txt
+        $CMD_PREFIX python3 "$WIB_CLIENT_SCRIPT" -w "$ip" "timing_$action" | tee timing_output.txt
         if check_timing_output; then
             wib_timing_is_ok="true"
         else
@@ -153,22 +148,7 @@ for id in "${!WIBS[@]}"; do
         exit 5
     fi
 
-    info    "Done with WIB $id"
+    info "Done with WIB $id"
 done
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
