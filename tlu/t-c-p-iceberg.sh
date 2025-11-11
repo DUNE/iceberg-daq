@@ -13,15 +13,17 @@
 #
 # Modified by Andrew Mogan to point to new DUNE DAQ area Nov. 2025
 
+: "${LOG_PREFIX:=$(basename "${BASH_SOURCE[0]}")}"
+source ../logging.sh
+
 if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
-    echo "ERROR: This script is intended to be executed directly, not sourced." >&2
-    usage
+    error "This script is intended to be executed directly, not sourced."
     return 1
 fi
 
 if [[ -z "$DBT_AREA_ROOT" ]]; then
-    echo "ERROR: No DUNE DAQ environment setup." >&2
-    echo "       Run 'source $DBT_AREA_ROOT/env.sh'" >&2
+    error "No DUNE DAQ environment setup."
+    error "Navigate to the local DUNE DAQ build and run 'source env.sh'"
     exit 2
 fi
 
