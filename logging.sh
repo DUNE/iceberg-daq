@@ -17,7 +17,7 @@ _log() {
     local color=""
     case "$level" in
         INFO) color="$COLOR_INFO" ;;
-        WARN) color="$COLOR_WARN" ;;
+        WARNING) color="$COLOR_WARN" ;;
         ERROR) color="$COLOR_ERROR" ;;
     esac
 
