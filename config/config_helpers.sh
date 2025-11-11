@@ -15,13 +15,11 @@ list_available_configs() {
     [[ -d "$generated_config_root" ]] || { error "Generated config dir $generated_config_root does not exist"; exit 1; }
     local configs
     configs=$(find "$generated_config_root" -mindepth 1 -maxdepth 1 -type d -printf "  - %f\n")
-    #if [[ -z "$(find "$generated_config_root" -mindepth 1 -maxdepth 1 -type d -printf "  - %f\n")" ]]; then
     if [[ -z "$configs" ]]; then
         warn "There are no available configurations in $generated_config_root"
-        warn "To generate a configuration, use $HERE/../config/create_daq_config.sh"
-        exit 1
+        warn "To generate a configuration, use $TOP/config/create_daq_config.sh"
+        return 0
     fi
     info "The available configurations are listed below:"
-    #find "$generated_config_root" -mindepth 1 -maxdepth 1 -type d -printf "  - %f\n"
     echo -e "${COLOR_INFO}${configs}${COLOR_RESET}"
 }
