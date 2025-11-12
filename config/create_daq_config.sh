@@ -31,6 +31,8 @@ Optional arguments:
   --wibs
         List of three-digit WIB identifier numbers, or 'all' to configure all WIBs (default behavior).
         Allowed individual values are 102, 105, and 106.
+  --isc
+        Configure the WIBs to send data to NERSC through isc02.fnal.gov (in progress).
   --list
         List available configurations.
   --clean
@@ -38,8 +40,11 @@ Optional arguments:
   -h, --help, -?, or no arguments
         Show this message and exit.
 
-Example:
-    ./$prog --wibs 102 105 --source pulser --name pulser_wibs_102_105
+Examples:
+    Pulser configuration using only WIBs 102 and 105:
+        ./$prog --wibs 102 105 --source pulser --name pulser_wibs_102_105
+    Configure WIBs to send to isc02.fnal.gov:
+        ./$prog --source pulser --isc --name pulser_isc
 EOF
 }
 
