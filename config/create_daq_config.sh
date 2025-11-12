@@ -57,6 +57,7 @@ fi
 wibs=( "all" )
 data_source=""
 config_name=""
+use_isc="false"
 clean_mode="false"
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -100,6 +101,10 @@ while [[ $# -gt 0 ]]; do
             fi
             config_name="$2"
             shift 2
+            ;;
+        --isc)
+            use_isc02="true"
+            shift
             ;;
         --clean)
             clean_mode="true"
@@ -161,6 +166,7 @@ mkdir -p ${generated_config_dir}
 # Generate detector readout (DRO) maps from input WIB list
 base_dromap_files=()
 for wib in ${wibs[@]}; do 
+    #filename="${base_config_dir}/dromaps/iceberg_dromap_wib_${wib}_isc02.json"
     filename="${base_config_dir}/dromaps/iceberg_dromap_wib_${wib}.json"
     if [[ ! -f "${filename}" ]]; then
         error "No detector readout map file exists for WIB $wib in $base_config_dir/dromaps"
@@ -188,13 +194,6 @@ configure_pulser_json() {
     generated_daq_config="${generated_config_dir}/iceberg_daq_eth_pulser.json"
     cp -pf "${base_daq_config}" "${generated_daq_config}"
     info "Configuring for pulser"
-    #sed -i '
-    #    /"signal"/s/[0-9][0-9]*/16777216/
-    #    /tc_type_name/s/k[a-zA-Z]*/kDTSPulser/
-    #    /hsi_re_mask/s/[0-9][0-9]*/16777216/
-    #    /offline_data_stream/s/:.*/: "calibration",/
-    #    /hsi_source/s/:.*/: 0,/
-    #' "${generated_daq_config}"
     daq_json="${generated_daq_config}"
 }
 
@@ -260,6 +259,12 @@ case "$data_source" in
         ;;
 esac
 
+if [[ "$use_isc02" == "true" ]]; then
+    sed -i '/rx_ip/s/192.168.122.100/128.55.205.19/g;
+            /rx_mac/s/b4:83:51:0a:3e:d0/e4:78:76:90:ad:8f/g
+    ' "${dromap}"
+fi
+
 generate_top_config
 generate_wib_config
 
@@ -285,3 +290,5 @@ sed -i 's/PD2HDChannelMap/ICEBERGChannelMap/' \
 "${generated_config_dir}/iceberg_daq_conf/data/trigger_conf.json" \
 "${generated_config_dir}/iceberg_daq_conf/data/ruiceberg03eth0_conf.json" \
 "${generated_daq_config}"
+
+info "Your generated configuration can be found in ${generated_config_dir}"
