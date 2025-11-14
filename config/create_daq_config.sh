@@ -62,7 +62,7 @@ fi
 wibs=( "all" )
 data_source=""
 config_name=""
-use_isc="false"
+use_isc02="false"
 clean_mode="false"
 while [[ $# -gt 0 ]]; do
     case "$1" in
