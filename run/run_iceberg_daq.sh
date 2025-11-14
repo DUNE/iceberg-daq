@@ -139,7 +139,7 @@ post_run() {
     mv $log_files log_$run_number
 }
 
-start=$(date +'%Y-%m-%d %H:%M:%S')   # used in 2 cases, next
+start=$(date +'%Y-%m-%d %H:%M:%S')
 run_number=0
 iceberg_runarea="${DBT_AREA_ROOT}/run-logs"
 runconfs_dir="$iceberg_runarea/configs"
