@@ -171,7 +171,6 @@ mkdir -p ${generated_config_dir}
 # Generate detector readout (DRO) maps from input WIB list
 base_dromap_files=()
 for wib in ${wibs[@]}; do 
-    #filename="${base_config_dir}/dromaps/iceberg_dromap_wib_${wib}_isc02.json"
     filename="${base_config_dir}/dromaps/iceberg_dromap_wib_${wib}.json"
     if [[ ! -f "${filename}" ]]; then
         error "No detector readout map file exists for WIB $wib in $base_config_dir/dromaps"
@@ -192,14 +191,14 @@ configure_cosmic_json() {
         /offline_data_stream/s/:.*/: "cosmics",/
         /hsi_source/s/:.*/: 0,/
     ' "${generated_daq_config}"
-    daq_json="${generated_daq_config}"
+    #daq_json="${generated_daq_config}"
 }
 
 configure_pulser_json() {
     generated_daq_config="${generated_config_dir}/iceberg_daq_eth_pulser.json"
     cp -pf "${base_daq_config}" "${generated_daq_config}"
     info "Configuring for pulser"
-    daq_json="${generated_daq_config}"
+    #daq_json="${generated_daq_config}"
 }
 
 configure_wibpulser_json() {
@@ -237,7 +236,6 @@ disable_fembs() {
 }
 
 # Generate configuration area based on selected option
-daq_json=""
 base_daq_config="${base_config_dir}/iceberg_daq_eth.json"
 generated_top_config=""
 generated_daq_config=""
@@ -279,15 +277,9 @@ fi
 generate_top_config
 generate_wib_config
 
-# Common operations for all configurations
-if [ -z "$daq_json" ]; then
-    error "Invalid daq config: $daq_json"
-    exit 3
-fi
-
-fddaqconf_gen     -f -c "${daq_json}"                            -m "${dromap}" "${generated_config_dir}/iceberg_daq_conf"
+fddaqconf_gen     -f -c "${generated_daq_config}"                -m "${dromap}" "${generated_config_dir}/iceberg_daq_conf"
 hermesmodules_gen -f -c "${base_config_dir}/iceberg_hermes.json" -m "${dromap}" "${generated_config_dir}/iceberg_hermes_conf"
-wibconf_gen       -f -c "${generated_config_dir}/wib_conf.json"                 "${generated_config_dir}/iceberg_wib_conf" #>> $HERE/../logs/iceberg_wib_conf.log
+wibconf_gen       -f -c "${generated_config_dir}/wib_conf.json"                 "${generated_config_dir}/iceberg_wib_conf"
 
 disable_fembs
 
