@@ -104,18 +104,20 @@ while [[ $# -gt 0 ]]; do
 done
 
 set_run_number() {
-    #case "$mode" in
-    #    main|confdir)
-    #        run_number=16091 # Latest run number previous to moving log directories
-    #        ;;
-    #    hermes)
-    #        run_number=1
-    #        ;;
-    #    *)
-    #        error "Unknown error when getting run number"
-    #        exit 10
-    #        ;;
-    #esac
+    # Starting from the latest run number previous to moving log directories,
+    # increment upward until a new run number is found
+    case "$mode" in
+        main|confdir)
+            run_number=16091
+            ;;
+        hermes)
+            run_number=21
+            ;;
+        *)
+            error "Unknown error when getting run number"
+            exit 10
+            ;;
+    esac
 
     #while [[ -d "$runconfs_dir/RunConf_$run_number" ]]; do
     while [[ -d "$iceberg_log_area/run_$run_number" ]]; do
@@ -128,60 +130,38 @@ create_run_log_dirs() {
     mkdir "$run_log_area" "$run_log_area/config" "$run_log_area/processes" "$run_log_area/info"
 }
 
-post_run() {
-    #if [[ ! -d "$runconfs_dir/RunConf_$run_number" ]]; then
-    #if [[ ! -d "$run_log_area/run_$run_number" ]]; then
-    #    error "No RunConf directory was created at $runconfs_dir/RunConf_$run_number"
-    #    exit 8
-    #fi
+move_info_files() {
+    # Unlike with run configs or other logs, there's no command line option to
+    # set where info log files are written, so we move them manually.
     info_files=$(find . -maxdepth 1 -name info_\* -newermt "$start")
     if [[ -n "$info_files" ]]; then
-        #mkdir $iceberg_log_area/info/info_$run_number
-        #mv $info_files $iceberg_log_area/info/info_$run_number
-        info "Moving the following files to $run_log_area/info:\n${info_files}"
         mv $info_files $run_log_area/info
+    else
+        warn "No info log files found in $(cwd)"
     fi
-    #cd $iceberg_log_area/logs
-    #log_files=$(find . -type f -newermt "$start")
-    #info "Moving log files $log_files to logs/log_$run_number"
-    #mkdir log_$run_number
-    #mv $log_files log_$run_number
 }
 
 start=$(date +'%Y-%m-%d %H:%M:%S')   # used in 2 cases, next
 run_number=0
 iceberg_log_area="${DBT_AREA_ROOT}/run-logs/$mode"
-#runconfs_dir="$iceberg_log_area/"
-#[[ -d "$iceberg_log_area" ]] || { error "No run area found in $iceberg_log_area"; exit 8; }
 set_run_number
 create_run_log_dirs
 case "$mode" in
 main)
-    [[ -d "$runconfs_dir" ]] || { error "RunConf directory $runconfs_dir does not exist."; exit 11; }
-    #set_run_number
     info "Attempting to start data taking run $run_number with config $config"
     info "Using config in $generated_config_dir/top_iceberg.json:"; grep -v '^[{}]' $generated_config_dir/top_iceberg.json || exit 987
-    #nanorc --log-path $iceberg_log_area/logs --partition-number 3  --cfg-dumpdir $runconfs_dir --logbook-prefix logs/logbook \
-    nanorc --log-path $run_log_area/processes --partition-number 3  --cfg-dumpdir $run_log_area/config --logbook-prefix logs/logbook \
-	   $generated_config_dir/top_iceberg.json dunecet-iceberg boot conf start_run $run_number \
+    nanorc --log-path $run_log_area/processes --partition-number 5 --cfg-dumpdir $run_log_area/config --logbook-prefix logs/logbook \
+	   $generated_config_dir/top_iceberg.json iceberg-${mode} boot conf start_run $run_number \
 	   wait $duration stop_run scrap terminate
-    status=$?
-    post_run
     ;;
 hermes)
-    #runconfs_dir="$runconfs_dir/hermes"
-    #[[ -d "$runconfs_dir" ]] || { error "RunConf directory $runconfs_dir does not exist."; exit 11; }
-    #set_run_number
-    #create_run_log_dirs
     hermes_config_dir=$generated_config_dir/iceberg_hermes_conf
-    #run_log_dir="$iceberg_log_area/hermes/run_${run_number}"
-    #mkdir $run_log_dir
-    info "Attempting to start hermes run $run_number"
     if [[ ! -d "$hermes_config_dir" ]]; then
         error "No hermes configuration found in $generated_config_dir"
         exit 5
     fi
-    nanorc --log-path $run_log_area/processes --partition-number 3 --cfg-dumpdir $run_log_area/config --logbook-prefix logs/logbook \
+    info "Attempting to start hermes run $run_number"
+    nanorc --log-path $run_log_area/processes --partition-number 6 --cfg-dumpdir $run_log_area/config --logbook-prefix logs/logbook \
 	   $hermes_config_dir iceberg-hermes boot start_run $run_number start_shell
     ;;
 *)
@@ -189,4 +169,8 @@ hermes)
     usage
     ;;
 esac
+
+move_info_files
+
+info "Run complete. Logs can be found in ${run_log_area}"
 
