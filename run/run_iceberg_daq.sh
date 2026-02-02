@@ -172,5 +172,5 @@ esac
 
 move_info_files
 
-info "Run complete. Logs can be found in ${run_log_area}"
+info "Run $run_number complete. Logs can be found in ${run_log_area}"
 
