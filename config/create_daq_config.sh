@@ -13,19 +13,19 @@ source $HERE/config_helpers.sh
 usage() {
 local prog=$(basename "$0")
     cat << EOF
-Usage: $prog --wibs <'all'|102|105|106> --source <cosmic|pulser|wibpulser|pulsechannel> --name <config_name> [--clean]"
+Usage: $prog --wibs <'all'|102|105|106> --base-config <cosmic|pulser|wibpulser|pulsechannel> --name <config_name> [--clean]"
 
 Generate configurations for Iceberg DAQ runs. Note that you must have an
 active DUNE DAQ environment setup for this script to work.
 
 Required arguments:
-  --source
-        Source of data.
-        Allowed values are 'cosmic' and 'pulser'. 'wibpusler' and 'pulsechannel' are not currently enabled.
+  --base-config
+        Base configuration file from which to generate your configuration.
+        Available base configurations can be found in ${base_config_dir}.
   --name
         Name of the generated configuration.
         A directory with this name will be created under ${generated_config_root}.
-        The config name is also used as input to the nanorc_run script.
+        The config name is also used as input to run_iceberg_daq.sh.
 
 Optional arguments:
   --wibs
@@ -41,10 +41,10 @@ Optional arguments:
         Show this message and exit.
 
 Examples:
+    Basic cosimc configuration:
+        ./$prog --base-config base/iceberg_daq_cosmic.json --name cosmic_config
     Pulser configuration using only WIBs 102 and 105:
-        ./$prog --wibs 102 105 --source pulser --name pulser_wibs_102_105
-    Configure WIBs to send to isc02.fnal.gov:
-        ./$prog --source pulser --isc --name pulser_isc
+        ./$prog --base-config base/iceberg_daq_pulser.json --name pulser_wibs_102_105 --wibs 102 105
 EOF
 }
 
@@ -60,7 +60,7 @@ if ! declare -p DBT_AREA_ROOT >&/dev/null; then
 fi
 
 wibs=( "all" )
-data_source=""
+base_config="cosmic"
 config_name=""
 use_isc02="false"
 clean_mode="false"
@@ -87,16 +87,17 @@ while [[ $# -gt 0 ]]; do
                 shift
             done
             ;;
-        --source)
-            if [[ $# -eq 1 || "$2" == -* ]]; then
-                error "--source requires an argument."
+        --base-config)
+            base_daq_config=$(basename "$2")
+            if [[ $# -eq 1 || "$base_daq_config" == -* ]]; then
+                error "--base-config requires an argument."
                 exit 1
             fi
-            if [[ "$2" != "pulser" && "$2" != "cosmic" ]]; then
-                error "Invalid --source argument."
+            if [[ ! -f "${base_config_dir}/${base_daq_config}" ]]; then
+                error "--base-config argument must be a file."
                 exit 1
             fi
-            data_source="$2"
+            echo "Using base config: $base_daq_config"
             shift 2
             ;;
         --name)
@@ -124,8 +125,13 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Validate arguments
-if [[ -z "$data_source" ]]; then
-    error "--source is required"
+if [[ -z "$base_daq_config" ]]; then
+    error "--base-config is required"
+    exit 1
+fi
+
+if [[ ! -f "${base_config_dir}/${base_daq_config}" ]]; then
+    error "No base config named $base_daq_config found in $base_config_dir"
     exit 1
 fi
 
@@ -181,6 +187,18 @@ done
 dromap="${generated_config_dir}/wib_dromap.json"
 jq -s 'add' ${dromap_files[@]} > "${dromap}"
 
+if [[ "$use_isc02" == "true" ]]; then
+    sed -i '/rx_ip/s/192.168.122.100/128.55.205.29/g;
+            /rx_mac/s/b4:83:51:0a:3e:d0/e4:78:76:90:ad:8f/g;
+            /tx_ip/s/192.168.122.22/131.225.237.114/g;
+            /tx_ip/s/192.168.122.23/131.225.237.115/g;
+            /tx_ip/s/192.168.122.28/131.225.237.116/g;
+            /tx_ip/s/192.168.122.29/131.225.237.117/g;
+            /tx_ip/s/192.168.122.30/131.225.237.118/g;
+            /tx_ip/s/192.168.122.31/131.225.237.119/g
+    ' "${dromap}"
+fi
+
 configure_cosmic_json() {
     generated_daq_config="${generated_config_dir}/iceberg_daq_eth_cosmic.json"
     cp -pf "${base_daq_config}" "${generated_daq_config}"
@@ -235,44 +253,8 @@ disable_fembs() {
     fi
 }
 
-# Generate configuration area based on selected option
-base_daq_config="${base_config_dir}/iceberg_daq_eth.json"
-generated_top_config=""
-generated_daq_config=""
-case "$data_source" in
-    cosmic)
-        base_daq_config="${base_config_dir}/iceberg_daq_cosmic.json"
-        configure_cosmic_json
-        ;;
-    pulser)
-        base_daq_config="${base_config_dir}/iceberg_daq_pulser.json"
-        configure_pulser_json
-        ;;
-    wibpulser)
-        configure_wibpulser_json
-        configure_pulser_json
-        ;;
-    pulsechannel)
-        configure_pulser_json
-        ;;
-    *)
-        error "Unknown source: $data_source"
-        usage
-        exit 1
-        ;;
-esac
-
-if [[ "$use_isc02" == "true" ]]; then
-    sed -i '/rx_ip/s/192.168.122.100/128.55.205.29/g;
-            /rx_mac/s/b4:83:51:0a:3e:d0/e4:78:76:90:ad:8f/g;
-            /tx_ip/s/192.168.122.22/131.225.237.114/g;
-            /tx_ip/s/192.168.122.23/131.225.237.115/g;
-            /tx_ip/s/192.168.122.28/131.225.237.116/g;
-            /tx_ip/s/192.168.122.29/131.225.237.117/g;
-            /tx_ip/s/192.168.122.30/131.225.237.118/g;
-            /tx_ip/s/192.168.122.31/131.225.237.119/g
-    ' "${dromap}"
-fi
+generated_daq_config="${generated_config_dir}/${base_daq_config}"
+cp -pf "${base_config_dir}/${base_daq_config}" "${generated_daq_config}"
 
 generate_top_config
 generate_wib_config
