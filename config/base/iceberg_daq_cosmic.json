@@ -96,7 +96,7 @@
         "host_fake_hsi": "iceberg01",
         "host_timing_hsi": "iceberg01",
         "hsi_device_id": 0,
-        "hsi_device_name": "",
+        "hsi_device_name": "BOREAS_TLU_ICEBERG",
         "hsi_endpoint_address": 1,
         "hsi_endpoint_partition": 0,
         "hsi_fe_mask": 0,
