@@ -48,6 +48,7 @@ fi
 
 duration=30
 mode="main"
+config=""
 while [[ $# -gt 0 ]]; do
     case "$1" in
         -h|-\?|--help)
@@ -78,7 +79,6 @@ while [[ $# -gt 0 ]]; do
                 list_available_configs
                 exit 2
             fi
-            #mode="confdir"
             config="$2"
             generated_config_dir="$generated_config_root/$config"
             shift 2
@@ -102,6 +102,11 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+if [[ -z "$config" ]]; then
+    error "--config is a required argument."
+    exit 1
+fi
 
 set_run_number() {
     # Starting from the latest run number previous to moving log directories,
@@ -143,7 +148,7 @@ move_info_files() {
 
 start=$(date +'%Y-%m-%d %H:%M:%S')
 run_number=0
-iceberg_log_area="${DBT_AREA_ROOT}/run-logs/$mode"
+iceberg_log_area="/data02/dunecet/run-logs/$mode"
 set_run_number
 create_run_log_dirs
 case "$mode" in
