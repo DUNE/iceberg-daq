@@ -13,7 +13,10 @@ source $HERE/config_helpers.sh
 usage() {
 local prog=$(basename "$0")
     cat << EOF
-Usage: $prog --wibs <'all'|102|105|106> --base-config <cosmic|pulser|wibpulser|pulsechannel> --name <config_name> [--clean]"
+Usage: $prog --wibs <'all'|102|105|106> 
+             --base-config <config_file_path> 
+             --name <config_name> 
+             [--clean]"
 
 Generate configurations for Iceberg DAQ runs. Note that you must have an
 active DUNE DAQ environment setup for this script to work.
@@ -41,7 +44,7 @@ Optional arguments:
         Show this message and exit.
 
 Examples:
-    Basic cosimc configuration:
+    Basic cosmic configuration:
         ./$prog --base-config base/iceberg_daq_cosmic.json --name cosmic_config
     Pulser configuration using only WIBs 102 and 105:
         ./$prog --base-config base/iceberg_daq_pulser.json --name pulser_wibs_102_105 --wibs 102 105
@@ -59,8 +62,8 @@ if ! declare -p DBT_AREA_ROOT >&/dev/null; then
     exit 2
 fi
 
+base_daq_config=""
 wibs=( "all" )
-base_config="cosmic"
 config_name=""
 use_isc02="false"
 clean_mode="false"
@@ -94,7 +97,7 @@ while [[ $# -gt 0 ]]; do
                 exit 1
             fi
             if [[ ! -f "${base_config_dir}/${base_daq_config}" ]]; then
-                error "--base-config argument must be a file."
+                error "--base-config argument must be a file from ${base_config_dir}."
                 exit 1
             fi
             echo "Using base config: $base_daq_config"
@@ -130,35 +133,34 @@ if [[ -z "$base_daq_config" ]]; then
     exit 1
 fi
 
-if [[ ! -f "${base_config_dir}/${base_daq_config}" ]]; then
-    error "No base config named $base_daq_config found in $base_config_dir"
-    exit 1
-fi
-
 if [[ -z "$config_name" ]]; then
     error "--name is required"
     exit 1
 fi
 
-if [[ "${wibs[@]}" == "all" ]]; then
-    wibs=( '102' '105' '106' )
-fi
-
-invalid_wib="false"
-for wib in "${wibs[@]}"; do
-    if [[ "$wib" != "102" && "$wib" != "105" && "$wib" != "106" ]]; then
-        error "Invalid --wibs argument: $wib".
-        invalid_wib="true"
+parse_wib_args() {
+    if [[ "${wibs[@]}" == "all" ]]; then
+        wibs=( '102' '105' '106' )
     fi
-done
-[[ "$invalid_wib" == "false" ]] || exit 1
 
-num_unique_elements=$(echo "${wibs[@]}" | tr " " "\n" | uniq -c | wc -l)
-if [[ $num_unique_elements != ${#wibs[@]} ]]; then
-    error "Each provided WIB number must be unique"
-    error "Provided WIBs: ${wibs[@]}"
-    exit 5
-fi
+    invalid_wib="false"
+    for wib in "${wibs[@]}"; do
+        if [[ "$wib" != "102" && "$wib" != "105" && "$wib" != "106" ]]; then
+            error "Invalid --wibs argument: $wib".
+            invalid_wib="true"
+        fi
+    done
+    [[ "$invalid_wib" == "false" ]] || { echo "Invalid WIB args; exiting..."; exit 1; }
+
+    num_unique_elements=$(echo "${wibs[@]}" | tr " " "\n" | uniq -c | wc -l)
+    if [[ $num_unique_elements != ${#wibs[@]} ]]; then
+        error "Each provided WIB number must be unique"
+        error "Provided WIBs: ${wibs[@]}"
+        exit 5
+    fi
+}
+
+parse_wib_args
 
 # Create a config area. Remove an already existing area if --clean is provided.
 generated_config_dir="${generated_config_root}"/"${config_name}"
@@ -174,7 +176,8 @@ if [[ -d "${generated_config_dir}" ]]; then
 fi
 mkdir -p ${generated_config_dir}
 
-# Generate detector readout (DRO) maps from input WIB list
+# Generate detector readout (DRO) map from the input WIB list
+dromap="${generated_config_dir}/wib_dromap.json"
 base_dromap_files=()
 for wib in ${wibs[@]}; do 
     filename="${base_config_dir}/dromaps/iceberg_dromap_wib_${wib}.json"
@@ -184,7 +187,6 @@ for wib in ${wibs[@]}; do
     fi
     dromap_files+=("${filename}")
 done
-dromap="${generated_config_dir}/wib_dromap.json"
 jq -s 'add' ${dromap_files[@]} > "${dromap}"
 
 if [[ "$use_isc02" == "true" ]]; then
@@ -198,36 +200,6 @@ if [[ "$use_isc02" == "true" ]]; then
             /tx_ip/s/192.168.122.31/131.225.237.119/g
     ' "${dromap}"
 fi
-
-configure_cosmic_json() {
-    generated_daq_config="${generated_config_dir}/iceberg_daq_eth_cosmic.json"
-    cp -pf "${base_daq_config}" "${generated_daq_config}"
-    sed -i '
-        /"signal"/s/[0-9][0-9]*/32/
-        /tc_type_name/s/k[a-zA-Z]*/kDTSCosmic/
-        /hsi_re_mask/s/[0-9][0-9]*/32/
-        /offline_data_stream/s/:.*/: "cosmics",/
-        /hsi_source/s/:.*/: 0,/
-    ' "${generated_daq_config}"
-    #daq_json="${generated_daq_config}"
-}
-
-configure_pulser_json() {
-    generated_daq_config="${generated_config_dir}/iceberg_daq_eth_pulser.json"
-    cp -pf "${base_daq_config}" "${generated_daq_config}"
-    info "Configuring for pulser"
-    #daq_json="${generated_daq_config}"
-}
-
-configure_wibpulser_json() {
-    echo "***************************************************************"
-    echo " "
-    echo "Configuring for WIB Pulser"
-    echo "This does not do any modifcations to iceberg_daq_eth.json"
-    echo "Modifies the same items as pulser for calibration"
-    echo " "
-    echo "**************************************************************"
-}
 
 generate_top_config() {
     # Create a "top" configuration file that points to the correct generated config areas
@@ -265,15 +237,13 @@ wibconf_gen       -f -c "${generated_config_dir}/wib_conf.json"                 
 
 disable_fembs
 
+# ICEBERG-specific edits for generated config files
 sed -i 's/monkafka.cern.ch:30092/iceberg01.fnal.gov:30092/g' "${generated_config_dir}/iceberg_daq_conf/boot.json"
 sed -i 's/monkafka.cern.ch:30092/iceberg01.fnal.gov:30092/g' "${generated_config_dir}/iceberg_hermes_conf/boot.json"
 sed -i '
     /digits_for_file_index/s/.,/1,/
     /overall_prefix/s/iceberghd/iceberghd_raw/
 ' "${generated_config_dir}/iceberg_daq_conf/data/dataflow0_conf.json"
-sed -i 's/PD2HDChannelMap/ICEBERGChannelMap/' \
-"${generated_config_dir}/iceberg_daq_conf/data/trigger_conf.json" \
-"${generated_config_dir}/iceberg_daq_conf/data/ruiceberg03eth0_conf.json" \
-"${generated_daq_config}"
+sed -i 's/PD2HDChannelMap/ICEBERGChannelMap/' "${generated_daq_config}"
 
 info "Your generated configuration can be found in ${generated_config_dir}"
