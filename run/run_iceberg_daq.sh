@@ -59,7 +59,7 @@ while [[ $# -gt 0 ]]; do
                 error "--mode requires an argument."
                 exit 1
             fi
-            if [[ "$2" != "hermes" && "$2" != "main" && "$2" != confdir ]]; then
+            if [[ "$2" != "hermes" && "$2" != "main" && "$2" != "confdir" ]]; then
                 error "Invalid mode. Mode must be one of 'hermes', 'main', or 'confdir'"
                 usage
                 exit 1
@@ -151,29 +151,36 @@ run_number=0
 iceberg_log_area="/data02/dunecet/run-logs/$mode"
 set_run_number
 create_run_log_dirs
-case "$mode" in
-main)
-    info "Attempting to start data taking run $run_number with config $config"
-    info "Using config in $generated_config_dir/top_iceberg.json:"; grep -v '^[{}]' $generated_config_dir/top_iceberg.json || exit 987
-    nanorc --log-path $run_log_area/processes --partition-number 5 --cfg-dumpdir $run_log_area/config --logbook-prefix logs/logbook \
-	   $generated_config_dir/top_iceberg.json iceberg-${mode} boot conf start_run $run_number \
-	   wait $duration stop_run scrap terminate
-    ;;
-hermes)
-    hermes_config_dir=$generated_config_dir/iceberg_hermes_conf
-    if [[ ! -d "$hermes_config_dir" ]]; then
-        error "No hermes configuration found in $generated_config_dir"
-        exit 5
-    fi
+
+# Different modes use separate partitions to avoid port collisions
+declare -A run_partition=([main]=5 [hermes]=6)
+
+declare -A top_config_path=(
+    [main]="${generated_config_dir}/top_iceberg.json"
+    [hermes]="${generated_config_dir}/iceberg_hermes_conf"
+)
+
+declare -A run_opts=(
+    [main]="boot conf start_run $run_number wait $duration stop_run scrap terminate"
+    [hermes]="boot start_run $run_number start_shell"
+)
+
+# Hermes needs a directory for configuration, normal runs just need a file
+cfg="${top_config_path[$mode]}"
+if [[ "$mode" == "hermes" ]]; then
+    [[ -d "$cfg" ]] || { error "No hermes configuration found in $generated_config_dir"; exit 5; }
     info "Attempting to start hermes run $run_number"
-    nanorc --log-path $run_log_area/processes --partition-number 6 --cfg-dumpdir $run_log_area/config --logbook-prefix logs/logbook \
-	   $hermes_config_dir iceberg-hermes boot start_run $run_number start_shell
-    ;;
-*)
-    error "Invalid mode: $mode"
-    usage
-    ;;
-esac
+else
+    info "Attempting to start $mode run $run_number with config $config"
+    info "Using config in $cfg:"; grep -v '^[{}]' "$cfg"
+fi
+
+nanorc --log-path "$run_log_area/processes" \
+       --partition-number "${run_partition[$mode]}" \
+       --cfg-dumpdir "$run_log_area/config" \
+       --logbook-prefix logs/logbook \
+       "$cfg" "iceberg-${mode}" \
+       ${run_opts[$mode]}
 
 move_info_files
 
