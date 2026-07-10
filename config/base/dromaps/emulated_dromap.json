@@ -1,0 +1,434 @@
+[
+  {
+    "src_id": 8,
+    "geo_id": {
+      "det_id": 3,
+      "crate_id": 8,
+      "slot_id": 1,
+      "stream_id": 0
+    },
+    "kind": "flx",
+    "parameters": {
+      "protocol": "full",
+      "mode": "fix_rate",
+      "host": "localhost",
+      "card": 0,
+      "slr": 0,
+      "link": 0
+    }
+  },
+  {
+    "src_id": 9,
+    "geo_id": {
+      "det_id": 3,
+      "crate_id": 8,
+      "slot_id": 1,
+      "stream_id": 1
+    },
+    "kind": "flx",
+    "parameters": {
+      "protocol": "full",
+      "mode": "fix_rate",
+      "host": "localhost",
+      "card": 0,
+      "slr": 0,
+      "link": 1
+    }
+  },
+  {
+    "src_id": 10,
+    "geo_id": {
+      "det_id": 3,
+      "crate_id": 8,
+      "slot_id": 1,
+      "stream_id": 2
+    },
+    "kind": "flx",
+    "parameters": {
+      "protocol": "full",
+      "mode": "fix_rate",
+      "host": "localhost",
+      "card": 0,
+      "slr": 0,
+      "link": 2
+    }
+  },
+  {
+    "src_id": 11,
+    "geo_id": {
+      "det_id": 3,
+      "crate_id": 8,
+      "slot_id": 1,
+      "stream_id": 3
+    },
+    "kind": "flx",
+    "parameters": {
+      "protocol": "full",
+      "mode": "fix_rate",
+      "host": "localhost",
+      "card": 0,
+      "slr": 0,
+      "link": 3
+    }
+  },
+  {
+    "src_id": 12,
+    "geo_id": {
+      "det_id": 3,
+      "crate_id": 8,
+      "slot_id": 1,
+      "stream_id": 64
+    },
+    "kind": "flx",
+    "parameters": {
+      "protocol": "full",
+      "mode": "fix_rate",
+      "host": "localhost",
+      "card": 0,
+      "slr": 0,
+      "link": 4
+    }
+  },
+  {
+    "src_id": 13,
+    "geo_id": {
+      "det_id": 3,
+      "crate_id": 8,
+      "slot_id": 1,
+      "stream_id": 65
+    },
+    "kind": "flx",
+    "parameters": {
+      "protocol": "full",
+      "mode": "fix_rate",
+      "host": "localhost",
+      "card": 0,
+      "slr": 0,
+      "link": 5
+    }
+  },
+  {
+    "src_id": 14,
+    "geo_id": {
+      "det_id": 3,
+      "crate_id": 8,
+      "slot_id": 1,
+      "stream_id": 66
+    },
+    "kind": "flx",
+    "parameters": {
+      "protocol": "full",
+      "mode": "fix_rate",
+      "host": "localhost",
+      "card": 0,
+      "slr": 0,
+      "link": 6
+    }
+  },
+  {
+    "src_id": 15,
+    "geo_id": {
+      "det_id": 3,
+      "crate_id": 8,
+      "slot_id": 1,
+      "stream_id": 67
+    },
+    "kind": "flx",
+    "parameters": {
+      "protocol": "full",
+      "mode": "fix_rate",
+      "host": "localhost",
+      "card": 0,
+      "slr": 0,
+      "link": 7
+    }
+  },
+  {
+    "src_id": 32,
+    "geo_id": {
+      "det_id": 3,
+      "crate_id": 8,
+      "slot_id": 4,
+      "stream_id": 0
+    },
+    "kind": "flx",
+    "parameters": {
+      "protocol": "full",
+      "mode": "fix_rate",
+      "host": "localhost",
+      "card": 0,
+      "slr": 0,
+      "link": 8
+    }
+  },
+  {
+    "src_id": 33,
+    "geo_id": {
+      "det_id": 3,
+      "crate_id": 8,
+      "slot_id": 4,
+      "stream_id": 1
+    },
+    "kind": "flx",
+    "parameters": {
+      "protocol": "full",
+      "mode": "fix_rate",
+      "host": "localhost",
+      "card": 0,
+      "slr": 0,
+      "link": 9
+    }
+  },
+  {
+    "src_id": 34,
+    "geo_id": {
+      "det_id": 3,
+      "crate_id": 8,
+      "slot_id": 4,
+      "stream_id": 2
+    },
+    "kind": "flx",
+    "parameters": {
+      "protocol": "full",
+      "mode": "fix_rate",
+      "host": "localhost",
+      "card": 0,
+      "slr": 0,
+      "link": 10
+    }
+  },
+  {
+    "src_id": 35,
+    "geo_id": {
+      "det_id": 3,
+      "crate_id": 8,
+      "slot_id": 4,
+      "stream_id": 3
+    },
+    "kind": "flx",
+    "parameters": {
+      "protocol": "full",
+      "mode": "fix_rate",
+      "host": "localhost",
+      "card": 0,
+      "slr": 0,
+      "link": 11
+    }
+  },
+  {
+    "src_id": 36,
+    "geo_id": {
+      "det_id": 3,
+      "crate_id": 8,
+      "slot_id": 4,
+      "stream_id": 64
+    },
+    "kind": "flx",
+    "parameters": {
+      "protocol": "full",
+      "mode": "fix_rate",
+      "host": "localhost",
+      "card": 0,
+      "slr": 0,
+      "link": 12
+    }
+  },
+  {
+    "src_id": 37,
+    "geo_id": {
+      "det_id": 3,
+      "crate_id": 8,
+      "slot_id": 4,
+      "stream_id": 65
+    },
+    "kind": "flx",
+    "parameters": {
+      "protocol": "full",
+      "mode": "fix_rate",
+      "host": "localhost",
+      "card": 0,
+      "slr": 0,
+      "link": 13
+    }
+  },
+  {
+    "src_id": 38,
+    "geo_id": {
+      "det_id": 3,
+      "crate_id": 8,
+      "slot_id": 4,
+      "stream_id": 66
+    },
+    "kind": "flx",
+    "parameters": {
+      "protocol": "full",
+      "mode": "fix_rate",
+      "host": "localhost",
+      "card": 0,
+      "slr": 0,
+      "link": 14
+    }
+  },
+  {
+    "src_id": 39,
+    "geo_id": {
+      "det_id": 3,
+      "crate_id": 8,
+      "slot_id": 4,
+      "stream_id": 67
+    },
+    "kind": "flx",
+    "parameters": {
+      "protocol": "full",
+      "mode": "fix_rate",
+      "host": "localhost",
+      "card": 0,
+      "slr": 0,
+      "link": 15
+    }
+  },
+  {
+    "src_id": 40,
+    "geo_id": {
+      "det_id": 3,
+      "crate_id": 8,
+      "slot_id": 5,
+      "stream_id": 0
+    },
+    "kind": "flx",
+    "parameters": {
+      "protocol": "full",
+      "mode": "fix_rate",
+      "host": "localhost",
+      "card": 0,
+      "slr": 0,
+      "link": 16
+    }
+  },
+  {
+    "src_id": 41,
+    "geo_id": {
+      "det_id": 3,
+      "crate_id": 8,
+      "slot_id": 5,
+      "stream_id": 1
+    },
+    "kind": "flx",
+    "parameters": {
+      "protocol": "full",
+      "mode": "fix_rate",
+      "host": "localhost",
+      "card": 0,
+      "slr": 0,
+      "link": 17
+    }
+  },
+  {
+    "src_id": 42,
+    "geo_id": {
+      "det_id": 3,
+      "crate_id": 8,
+      "slot_id": 5,
+      "stream_id": 2
+    },
+    "kind": "flx",
+    "parameters": {
+      "protocol": "full",
+      "mode": "fix_rate",
+      "host": "localhost",
+      "card": 0,
+      "slr": 0,
+      "link": 18
+    }
+  },
+  {
+    "src_id": 43,
+    "geo_id": {
+      "det_id": 3,
+      "crate_id": 8,
+      "slot_id": 5,
+      "stream_id": 3
+    },
+    "kind": "flx",
+    "parameters": {
+      "protocol": "full",
+      "mode": "fix_rate",
+      "host": "localhost",
+      "card": 0,
+      "slr": 0,
+      "link": 19
+    }
+  },
+  {
+    "src_id": 44,
+    "geo_id": {
+      "det_id": 3,
+      "crate_id": 8,
+      "slot_id": 5,
+      "stream_id": 64
+    },
+    "kind": "flx",
+    "parameters": {
+      "protocol": "full",
+      "mode": "fix_rate",
+      "host": "localhost",
+      "card": 0,
+      "slr": 0,
+      "link": 20
+    }
+  },
+  {
+    "src_id": 45,
+    "geo_id": {
+      "det_id": 3,
+      "crate_id": 8,
+      "slot_id": 5,
+      "stream_id": 65
+    },
+    "kind": "flx",
+    "parameters": {
+      "protocol": "full",
+      "mode": "fix_rate",
+      "host": "localhost",
+      "card": 0,
+      "slr": 0,
+      "link": 21
+    }
+  },
+  {
+    "src_id": 46,
+    "geo_id": {
+      "det_id": 3,
+      "crate_id": 8,
+      "slot_id": 5,
+      "stream_id": 66
+    },
+    "kind": "flx",
+    "parameters": {
+      "protocol": "full",
+      "mode": "fix_rate",
+      "host": "localhost",
+      "card": 0,
+      "slr": 0,
+      "link": 22
+    }
+  },
+  {
+    "src_id": 47,
+    "geo_id": {
+      "det_id": 3,
+      "crate_id": 8,
+      "slot_id": 5,
+      "stream_id": 67
+    },
+    "kind": "flx",
+    "parameters": {
+      "protocol": "full",
+      "mode": "fix_rate",
+      "host": "localhost",
+      "card": 0,
+      "slr": 0,
+      "link": 23
+    }
+  }
+]

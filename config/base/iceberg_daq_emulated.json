@@ -1,0 +1,27 @@
+{
+  "boot": {
+    "use_connectivity_service": true,
+    "start_connectivity_service": true,
+    "connectivity_service_host": "localhost",
+    "connectivity_service_port": 15432
+  }, 
+  "daq_common": {
+    "data_rate_slowdown_factor": 10
+  },
+  "detector": {
+    "clock_speed_hz": 62500000
+  },
+  "readout": {
+    "use_fake_cards": true,
+    "data_files": [
+      {"detector_id": 3, "data_file": "/nvme/dunecet/dunedaq/data/emulated/iceberg_emulated_pulser_data.bin"}
+    ]
+  },
+  "trigger": {
+    "ttcm_input_map": [{"signal": 1, "tc_type_name": "kTiming",
+                        "time_before": 1000, "time_after": 1000}]
+  },
+  "hsi": {
+    "random_trigger_rate_hz": 1.0
+  }
+}
